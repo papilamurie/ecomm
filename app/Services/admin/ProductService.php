@@ -6,6 +6,7 @@ use App\Models\ProductImage;
 use App\Models\AdminsRole;
 use App\Models\Category;
 use App\Models\ProductsAttribute;
+use App\Models\ProductsCategory;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
 
@@ -108,6 +109,35 @@ public function addEditProduct($request)
     $product->status           = 1;
 
     $product->save();
+
+    // sync other categories
+    if(!empty($data['other_categories']) && is_array($data['other_categories'])){
+        //clear records
+        ProductsCategory::where('product_id', $product->id)->delete();
+
+        //insert new records
+        foreach($data['other_categories'] as $catId){
+            ProductsCategory::create([
+                'product_id'  => $product->id,
+                'category_id' => $catId
+            ]);
+        }
+    }
+        else{
+            //clear records
+            ProductsCategory::where('product_id', $product->id)->delete();
+        }
+
+
+    //sync filter values
+    if(!empty($data['filter_values']) && is_array($data['filter_values'])){
+       // data['filter_values'] = [filter_id=> filter_value_id, ...]
+       // keep only selected values (non-empty)
+       $values = array_values(array_filter($data['filter_values']));
+       $product->filterValues()->sync($values);
+    }else{
+        $product->filterValues()->detach();
+    }
 
     // -------------------------
     // Main Image Handling

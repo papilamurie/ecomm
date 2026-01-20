@@ -42,6 +42,18 @@ $(document).ready(function () {
             savedOrder: {!! json_encode($bannersSaveOrder ?? []) !!}.map(x => parseInt(x)),
             hiddenCols: {!! json_encode($bannersHiddenCols ?? []) !!}.map(x => parseInt(x)),
             tableKey: "banners"
+        },
+        {
+            id: "filters",
+            savedOrder: {!! json_encode($filtersSaveOrder ?? []) !!}.map(x => parseInt(x)),
+            hiddenCols: {!! json_encode($filtersHiddenCols ?? []) !!}.map(x => parseInt(x)),
+            tableKey: "filters"
+        },
+        {
+            id: "filter_values",
+            savedOrder: {!! json_encode($filterValuesSaveOrder ?? []) !!}.map(x => parseInt(x)),
+            hiddenCols: {!! json_encode($filterValuesHiddenCols ?? []) !!}.map(x => parseInt(x)),
+            tableKey: "filter_values"
         }
 
     ];

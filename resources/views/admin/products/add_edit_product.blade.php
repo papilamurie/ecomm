@@ -104,6 +104,42 @@
 
                                 </div>
 
+                            {{-- Other Categories --}}
+
+                            <div class="mb-3">
+                                <label class="form-label" for="other_category">Other Categories</label>
+                                <select name="other_categories[]" id="other_categories" class="form-control" multiple>
+                                    @foreach($getCategories as $cat)
+                                        <option value="{{ $cat['id'] }}"
+                                            @if(!empty($product) && isset($product->otherCategories)
+                                            && in_array($cat['id'], $product->otherCategories->pluck('category_id')->toArray())) selected @endif>
+                                            {{ $cat['name'] }}
+                                        </option>
+                                        {{-- Subcategories --}}
+                                        @if (!empty($cat['subcategories']))
+                                            @foreach ($cat['subcategories'] as $subcat)
+                                                <option value="{{ $subcat['id'] }}"
+                                                   @if(!empty($product) && isset($product->otherCategories) &&
+                                                   in_array($subcat['id'], $product->otherCategories->pluck('category_id')->toArray())) selected @endif>
+                                                    &nbsp;&nbsp;» {{ $subcat['name'] }}
+                                                </option>
+                                                {{-- Sub-subcategories --}}
+                                                @if (!empty($subcat['subcategories']))
+                                                    @foreach ($subcat['subcategories'] as $subsubcat)
+                                                        <option value="{{ $subsubcat['id'] }}"
+                                                            @if(!empty($product) && isset($product->otherCategories) &&
+                                                            in_array($subsubcat['id'], $product->otherCategories->pluck('category_id')->toArray())) selected @endif>
+                                                            &nbsp;&nbsp;&nbsp;&nbsp;»» {{ $subsubcat['name'] }}
+                                                        </option>
+                                                    @endforeach
+                                                @endif
+                                            @endforeach
+                                        @endif
+                                    @endforeach
+                                </select>
+                                <small class="form-text text-muted">Hold CTRL (Windows) or CMD (Mac) to select multiple categories</small>
+                            </div>
+
                               {{-- Brand Name --}}
                               <div class="mb-3">
                                  <label class="form-label" for="brand_id">Select Brand*</label>
@@ -375,6 +411,33 @@
                                     <textarea rows="3" class="form-control" name="search_keywords">
                                         {{ old('search_keywords', $product->search_keywords ?? '') }}</textarea>
                                 </div>
+
+                                @php
+                                    $filters = \App\Models\Filter::with(['values' => function($q){
+                                        $q->where('status',1)->orderBy('sort','asc');
+                                    }])->where('status',1)->orderBy('sort','asc')->get();
+
+                                    $selectedValues = isset($product)
+                                            ? $product->filterValues->pluck('id')->toArray()
+                                            : [];
+
+                                @endphp
+
+                                @foreach ($filters as $filter )
+                                    <div class="mb-3">
+                                        <label class="form-label">{{ ucwords($filter->filter_name) }}</label>
+                                        <select name="filter_values[{{ $filter->id }}]" class="form-control">
+                                            <option value="">-- Select {{ ucwords($filter->filter_name) }} --</option>
+                                            @foreach ($filter->values as $value )
+                                                <option value="{{ $value->id }}"
+                                                    {{ in_array($value->id, $selectedValues) ? 'selected' : '' }}>
+                                                    {{ ucfirst($value->value) }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+
+                                @endforeach
 
                                 {{-- Meta Title --}}
                                 <div class="mb-3">

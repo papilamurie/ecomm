@@ -266,6 +266,39 @@ $(document).on("click", ".updateBannerStatus", function () {
     });
 });
 
+// Update Filter Status
+$(document).on("click", ".updateFilterStatus", function () {
+
+    var icon = $(this).find("i");
+    var status = icon.attr("data-status"); // FIXED
+    var filter_id = $(this).data("filter_id");
+
+    $.ajax({
+        type: "POST",
+        url: "/admin/update-filter-status",
+        data: {
+            status: status,
+            filter_id: filter_id,
+            _token: $('meta[name="csrf-token"]').attr("content")
+        },
+        success: function (resp) {
+
+            if (resp.status == 0) {
+                $("a[data-filter_id='" + filter_id + "']").html(
+                    "<i class='fas fa-toggle-off' style='color:grey' data-status='Inactive'></i>"
+                );
+            } else if (resp.status == 1) {
+                $("a[data-filter_id='" + filter_id + "']").html(
+                    "<i class='fas fa-toggle-on' style='color:#3f6ed3' data-status='Active'></i>"
+                );
+            }
+        },
+        error: function (xhr) {
+            alert("Error: " + xhr.status);
+        }
+    });
+});
+
 
 
 

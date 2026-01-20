@@ -97,9 +97,9 @@ $categories = Category::getCategories('Front');
                     <div class="header-right w-lg-max">
                         <div class="header-icon header-search header-search-inline header-search-category w-lg-max text-right mt-0">
                             <a href="#" class="search-toggle" role="button"><i class="icon-search-3"></i></a>
-                            <form action="#" method="get">
+                            <form action="javascript:void(0);">
                                 <div class="header-search-wrapper">
-                                    <input type="search" class="form-control" name="q" id="q" placeholder="Search for products" required>
+                                    <input type="search" class="form-control" name="q" id="search_input" placeholder="Search for products">
                                     <div class="select-custom">
                                         {{-- <select id="cat" name="cat">
 											<option value="">All Categories</option>
@@ -126,6 +126,10 @@ $categories = Category::getCategories('Front');
                                 </div>
                                 <!-- End .header-search-wrapper -->
                             </form>
+                            <div id="search_result" style="position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #ddd;
+                            border-top:none;z-index:999;">
+
+                            </div>
                         </div>
                         <!-- End .header-search -->
 

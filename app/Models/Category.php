@@ -101,6 +101,10 @@ class Category extends Model
             'breadcrumbs' => $breadcrumbs
         ];
     }
+
+    public function filters(){
+        return $this->belongsToMany(Filter::class, 'category_filter');
+    }
 }
 
 

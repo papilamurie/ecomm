@@ -117,12 +117,22 @@ private function applyFilters($query)
             }
         }
 
+        //Apply Category Filter
+        if(request()->has('category') && !empty(request()->get('category'))){
+            $categoryIds = explode('~', request()->get('category'));
+            $parentIds = Category::whereIn('parent_id', $categoryIds)->pluck('id')->toArray();
+            $allCatIds = array_merge($categoryIds, $parentIds);
+            if(!empty($allCatIds)){
+                $query->whereIn('category_id', $allCatIds);
+            }
+        }
+
         // Apply Dynamic Admin Filters  (Fabric, Sleeve, etc)
         $filterParams = request()->all();
 
         foreach($filterParams as $filterKey => $filterValues){
             //skip know default filters (color,size,brand,price,sort,page,json)
-            if(in_array($filterKey, ['color','size','brand','price','sort','page','json']))
+            if(in_array($filterKey, ['color','size','brand','price','sort','page','json','category','subcategory']))
             {
                 continue;
             }
@@ -138,5 +148,31 @@ private function applyFilters($query)
 
     return $query;
 }
+
+public function searchProducts($query, $limit = 6)
+{
+    $terms = explode(' ', str_replace(['-', '_'], ' ', $query));
+
+    return Product::with([
+        'product_images' => function($q){
+            $q->where('status', 1)->orderBy('sort','asc');
+        }
+    ])
+    ->where('status', 1)
+    ->where('stock', '>', 0)
+    ->where(function($q) use ($terms){
+        foreach($terms as $term){
+           if(!empty($term)){
+                $q->where('product_name', 'LIKE', '%' . $term . '%')
+                ->orWhere('product_code', 'LIKE', '%' . $term . '%')
+                ->orWhere('product_color', 'LIKE', '%' . $term . '%');
+           }
+        }
+    })
+    ->limit($limit)
+    ->get();
+}
+
+
 
 }

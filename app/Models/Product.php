@@ -4,9 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Models\ProductsImage;
+use Laravel\Scout\Searchable;
 
 class Product extends Model
 {
+
+    use Searchable;
+
     protected $fillable = [
         'category_id',
         'product_name',
@@ -35,5 +39,15 @@ class Product extends Model
 
     public function filterValues(){
         return $this->belongsToMany(FilterValue::class, 'product_filter_values', 'product_id', 'filter_value_id');
+    }
+
+    public function toSearchableArray()
+    {
+        $categoryName = $this->category->name ?? null;
+        return [
+            'id' => $this->id,
+            'product_name' => $this->product_name,
+            'category' => $categoryName
+        ];
     }
 }

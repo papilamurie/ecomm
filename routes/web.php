@@ -12,6 +12,8 @@ use App\Models\Category;
 use App\Http\Controllers\admin\CategoryController;
 use App\Http\Controllers\admin\ProductController;
 use App\Http\Controllers\admin\BannersController;
+use App\Http\Controllers\admin\FilterController;
+use App\Http\Controllers\admin\FilterValueController;
 
 
 //Front Controllers
@@ -132,6 +134,18 @@ Route::get('delete-product-video/{id}', [ProductController::class, 'deleteProduc
     Route::post('/product/upload-video', [ProductController::class, 'uploadVideo'])
      ->name('product.upload.video');
 
+
+        //Filters CRUD + Status Update
+    Route::resource('filters', FilterController::class);
+    Route::post('update-filter-status', [FilterController::class, 'updateFilterStatus'])->name('filters.updateStatus');
+
+        // Filter Values CRUD (Nested inside filters)
+    Route::prefix('filter/{filter}')->group(function (){
+        Route::resource('filter_values', FilterValueController::class)->parameters(['filter_values' => 'value']);
+
+    });
+
+
     // Route::post('/save-column-order', [Admincontroller::class, 'saveColumnOrder']);
     Route::post('/save-column-visibility', [AdminController::class, 'saveColumnVisibility']);
 
@@ -156,4 +170,7 @@ Route::namespace('App\Http\Controllers\front')->group(function (){
     foreach($catUrls as $url){
         Route::get("/$url", [ProductFrontController::class, 'index']);
     }
+
+    // search route
+    Route::get('/search-products', [ProductFrontController::class, 'ajaxSearch'])->name('search.products');
 });

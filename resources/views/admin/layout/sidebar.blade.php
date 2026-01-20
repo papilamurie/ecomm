@@ -29,8 +29,8 @@
               data-accordion="false"
               id="navigation"
             >
-              <li class="nav-item menu-open">
-                <a href="#" class="nav-link active">
+              <li class="nav-item {{ in_array(Session::get('page'), ['dashboard','update-details','update-password','subadmins']) ? 'menu-open' : '' }}">
+                <a href="#" class="nav-link {{ in_array(Session::get('page'), ['dashboard','update-details','update-password','subadmins']) ? 'active' : '' }}">
                   <i class="nav-icon bi bi-speedometer"></i>
                   <p>
                     Admin Management
@@ -66,8 +66,8 @@
                     @endif
                  </ul>
               </li>
-               <li class="nav-item">
-                <a href="#" class="nav-link">
+               <li class="nav-item {{ in_array(Session::get('page'), ['categories','products','filters']) ? 'menu-open' : '' }}">
+                <a href="#" class="nav-link {{ in_array(Session::get('page'), ['categories','products','filters']) ? 'active' : '' }}">
                   <i class="nav-icon bi bi-clipboard-fill"></i>
                   <p>
                     Categories Management
@@ -83,19 +83,40 @@
                 </a>
                   </li>
 
+                <li class="nav-item">
+                    <a href="{{ url('admin/products') }}" class="nav-link {{ (Session::get('page')=='products')? 'active':'' }}">
+                 <i class="nav-icon bi bi-circle"></i>
+                  <p>Products</p>
+                </a>
+                  </li>
                   <li class="nav-item">
+                    <a href="{{ url('admin/filters') }}" class="nav-link {{ (Session::get('page')=='filters')? 'active':'' }}">
+                 <i class="nav-icon bi bi-circle"></i>
+                  <p>Filters</p>
+                </a>
+                  </li>
+                </ul>
+              </li>
+
+
+               <li class="nav-item {{ in_array(Session::get('page'), ['brands','banners']) ? 'menu-open' : '' }}">
+                <a href="#" class="nav-link {{ in_array(Session::get('page'), ['brands','banners']) ? 'active' : '' }}">
+                  <i class="nav-icon bi bi-box-seam-fill"></i>
+                  <p>
+                    Banner Management
+
+                    <i class="nav-arrow bi bi-chevron-right"></i>
+                  </p>
+                </a>
+                <ul class="nav nav-treeview">
+                <li class="nav-item">
                     <a href="{{ url('admin/brands') }}" class="nav-link {{ (Session::get('page')=='brands')? 'active':'' }}">
                  <i class="nav-icon bi bi-circle"></i>
                   <p>Brands</p>
                 </a>
                   </li>
 
-                   <li class="nav-item">
-                    <a href="{{ url('admin/products') }}" class="nav-link {{ (Session::get('page')=='products')? 'active':'' }}">
-                 <i class="nav-icon bi bi-circle"></i>
-                  <p>Products</p>
-                </a>
-                  </li>
+
                   <li class="nav-item">
                     <a href="{{ url('admin/banners') }}" class="nav-link {{ (Session::get('page')=='banners')? 'active':'' }}">
                  <i class="nav-icon bi bi-circle"></i>
@@ -103,46 +124,10 @@
                 </a>
                   </li>
 
-
-
-
-
-
-
-
-
                 </ul>
               </li>
 
-              <li class="nav-item">
-                <a href="#" class="nav-link">
-                  <i class="nav-icon bi bi-box-seam-fill"></i>
-                  <p>
-                    Widgets
-                    <i class="nav-arrow bi bi-chevron-right"></i>
-                  </p>
-                </a>
-                <ul class="nav nav-treeview">
-                  <li class="nav-item">
-                    <a href="./widgets/small-box.html" class="nav-link">
-                      <i class="nav-icon bi bi-circle"></i>
-                      <p>Small Box</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="./widgets/info-box.html" class="nav-link">
-                      <i class="nav-icon bi bi-circle"></i>
-                      <p>info Box</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="./widgets/cards.html" class="nav-link">
-                      <i class="nav-icon bi bi-circle"></i>
-                      <p>Cards</p>
-                    </a>
-                  </li>
-                </ul>
-              </li>
+
               <li class="nav-item">
                 <a href="#" class="nav-link">
                   <i class="nav-icon bi bi-clipboard-fill"></i>

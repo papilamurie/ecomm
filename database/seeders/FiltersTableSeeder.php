@@ -16,12 +16,14 @@ class FiltersTableSeeder extends Seeder
         // Create filters
         $fabric = Filter::create([
             'filter_name' => 'Fabric',
+            'filter_column' => 'fabric',
             'sort'        => 1,
             'status'      => 1
         ]);
 
         $sleeve = Filter::create([
             'filter_name' => 'Sleeve',
+            'filter_column' => 'sleeve',
             'sort'        => 2,
             'status'      => 1
         ]);

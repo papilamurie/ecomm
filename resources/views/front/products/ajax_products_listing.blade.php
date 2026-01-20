@@ -120,68 +120,32 @@
                     <div class="sidebar-overlay"></div>
                     <aside class="sidebar-shop col-lg-3 order-lg-first mobile-sidebar">
                         <div class="sidebar-wrapper">
+                                            {{-- Categories --}}
+                        @if(!empty($categoryDetails) && $categoryDetails->subcategories->count() > 0)
                             <div class="widget">
                                 <h3 class="widget-title">
-                                    <a data-toggle="collapse" href="#widget-body-2" role="button" aria-expanded="true" aria-controls="widget-body-2">Categories</a>
+                                    <a data-bs-toggle="collapse" href="#widget-body-2" role="button" aria-expanded="true">Filter By Categories</a>
                                 </h3>
-
                                 <div class="collapse show" id="widget-body-2">
-                                @php
-                                use App\Models\Category;
-
-                                $categories = Category::getCategories('Front');
-
-                                $countProducts = function($cat) use (&$countProducts) {
-                                    $count = count($cat['products'] ?? []);
-                                    if (!empty($cat['subcategories'])) {
-                                        foreach ($cat['subcategories'] as $sub) {
-                                            $count += $countProducts($sub);
-                                        }
-                                    }
-                                    return $count;
-                                };
-                                    @endphp
-                              <div class="widget-body">
-                                    <ul class="cat-list">
-                                        @foreach ($categories as $index => $category)
-                                            @if ($category['menu_status'] == 1)
-                                                @php
-                                                    $collapseId = 'widget-category-' . $index;
-                                                    $totalProducts = $countProducts($category);
-                                                @endphp
-                                                <li>
-                                                    <a href="#{{ $collapseId }}" data-toggle="collapse" role="button" aria-expanded="true" aria-controls="{{ $collapseId }}">
-                                                        {{ $category['name'] }} <span class="products-count">({{ $totalProducts }})</span>
-                                                        <span class="toggle"></span>
-                                                    </a>
-
-                                                    @if (!empty($category['subcategories']))
-                                                        <div class="collapse show" id="{{ $collapseId }}">
-                                                            <ul class="cat-sublist">
-                                                                @foreach ($category['subcategories'] as $subIndex => $subcategory)
-                                                                    @if ($subcategory['menu_status'] == 1)
-                                                                        <li>
-                                                                            <a href="{{ url($subcategory['url']) }}">
-                                                                                {{ $subcategory['name'] }}
-                                                                                <span class="products-count">({{ count($subcategory['products'] ?? []) }})</span>
-                                                                            </a>
-                                                                        </li>
-                                                                    @endif
-                                                                @endforeach
-                                                            </ul>
-                                                        </div>
-                                                    @endif
-                                                </li>
-                                            @endif
+                                    <div class="widget-body pb-0 d-flex flex-column gap-2">
+                                     <div class="config-size-list" style="display: flex; flex-direction: column; flex-wrap: wrap; gap: 8px; max-width: 100%;">
+                                        @php $selectedCategories = request()->has('category') ? explode('~', request()->get('category')) : []; @endphp
+                                        @foreach($categoryDetails->subcategories as $subcategory)
+                                            <label class="size-option d-flex align-items-center gap-2" for="category{{ $subcategory->id }}"
+                                                 style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                                <input type="checkbox" name="category" id="category{{ $subcategory->id }}"
+                                                    value="{{ $subcategory->id }}" class="filterAjax"
+                                                    {{ in_array($subcategory->id, $selectedCategories) ? 'checked' : '' }}>
+                                                <span class="px-2 py-1 border rounded"
+                                                 style="display: inline-block; padding: 6px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; user-select: none; white-space: nowrap;">
+                                                 {{ ucwords($subcategory->name) }}</span>
+                                            </label>
                                         @endforeach
-                                    </ul>
+                                     </div>
+                                    </div>
                                 </div>
-
-                                    <!-- End .widget-body -->
-                                </div>
-                                <!-- End .collapse -->
                             </div>
-                            <!-- End .widget -->
+                        @endif
 
                             <div class="widget">
                                 <h3 class="widget-title">
@@ -313,13 +277,15 @@
                             <!-- End .widget -->
                             @foreach ($filters as $filter )
                             @php
-                                $filterValues = $filter->values()
-                                    ->whereHas('products',function($q) use ($catIds){
-                                        $q->whereIn('category_id', $catIds);
-                                    })
-                                    ->pluck('value')
-                                    ->unique()
-                                    ->toArray();
+                                 $filterValues = $filter->values
+                                            ->where('status', 1)
+                                            ->filter(function ($value) use ($catIds) {
+                                                return $value->products()
+                                                    ->whereIn('category_id', $catIds)
+                                                    ->exists();
+                                            })->pluck('value')
+                                              ->toArray();
+
                                 if(empty($filterValues)) continue;
                                 $selectedValues = request()->has($filter->filter_name) ? explode('~', request()->get($filter->filter_name))
                                 : [];
