@@ -9,6 +9,7 @@ use App\Models\ProductsAttribute;
 use App\Models\ProductsCategory;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Str;
 
 class ProductService
 {
@@ -106,9 +107,23 @@ public function addEditProduct($request)
     $product->meta_title       = $data['meta_title'] ?? '';
     $product->meta_description = $data['meta_description'] ?? '';
     $product->meta_keywords    = $data['meta_keywords'] ?? '';
+    $product->product_url     = $data['product_url'] ?? null;
     $product->status           = 1;
 
     $product->save();
+
+    // Generate product URL if not provided
+    if($product->wasRecentlyCreated){
+        $slug =Str::slug($data['product_name']);
+        $product->product_url = $slug . '-' . $product->id;
+        $product->save();
+    }else{
+        // In updatemode, update url only if provided
+        if(!empty($data['product_url'])){
+            $product->product_url = Str::slug($data['product_url']);
+            $product->save();
+        }
+    }
 
     // sync other categories
     if(!empty($data['other_categories']) && is_array($data['other_categories'])){

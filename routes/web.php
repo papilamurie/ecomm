@@ -14,11 +14,12 @@ use App\Http\Controllers\admin\ProductController;
 use App\Http\Controllers\admin\BannersController;
 use App\Http\Controllers\admin\FilterController;
 use App\Http\Controllers\admin\FilterValueController;
-
-
+use App\Http\Controllers\front\CartController;
 //Front Controllers
 use App\Http\Controllers\front\IndexController;
 use App\Http\Controllers\front\ProductController as ProductFrontController;
+use App\Models\Product;
+use Illuminate\Support\Facades\Schema;
 
 // Route::get('/', function () {
 //     return view('welcome');
@@ -171,6 +172,25 @@ Route::namespace('App\Http\Controllers\front')->group(function (){
         Route::get("/$url", [ProductFrontController::class, 'index']);
     }
 
-    // search route
+
+
+    // product detail route
+    if(Schema::hasTable('products')){
+        try{
+            $productUrls = Product::where('status', 1)->pluck('product_url')->toArray();
+            foreach($productUrls as $url){
+                Route::get("/$url", [ProductFrontController::class, 'detail']);
+            }
+        }catch(\Throwable $e){
+            // ignore errors during migration
+
+        }
+    }
+
+    Route::post('/get-product-price', [ProductFrontController::class, 'getProductPrice']);
+
+     // search route
     Route::get('/search-products', [ProductFrontController::class, 'ajaxSearch'])->name('search.products');
+    // cart route
+    Route::post('/add-to-cart', [CartController::class, 'store'])->name('cart.store');
 });

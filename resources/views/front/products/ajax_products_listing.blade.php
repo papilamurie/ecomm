@@ -26,7 +26,7 @@
                             <div class="col-6 col-sm-4">
                                 <div class="product-default">
                                     <figure>
-                              <a href="#">
+                              <a href="{{ url($product['product_url']) }}">
                                     <img src="{{ $mainImage }}"
                                         alt="{{ $product->product_name }}"
                                         onerror="this.src='{{ $fallbackImage }}'">
@@ -46,13 +46,13 @@
                                     <div class="product-details">
                                         <div class="category-wrap">
                                             <div class="category-list">
-                                               <a href="#" class="product-category">
+                                               <a href="{{ url($product['product_url']) }}" class="product-category">
                                         {{ $product->category->name ?? 'Uncategorized' }}
                                     </a>
                                             </div>
                                         </div>
 
-                                        <h3 class="product-title">  <a href="product.html">{{ $product['product_name'] }}</a> </h3>
+                                        <h3 class="product-title">  <a href="{{ url($product['product_url']) }}">{{ $product['product_name'] }}</a> </h3>
 
                                         <div class="ratings-container">
                                             <div class="product-ratings">

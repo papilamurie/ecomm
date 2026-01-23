@@ -4,6 +4,7 @@ namespace App\Http\Requests\admin;
 
 use Illuminate\Foundation\Http\FormRequest;
 use App\Models\Product;
+use Illuminate\Validation\Rule;
 
 class ProductRequest extends FormRequest
 {
@@ -31,6 +32,19 @@ class ProductRequest extends FormRequest
            'product_color' => 'required|max:200',
            'family_color' => 'required|max:200'
         ];
+
+        $productId = $this->route('product');
+        if($this->isMethod('post')){
+            $rules['product_url'] = [
+                'nullable',
+                Rule::unique('products', 'product_url'),
+            ];
+        }elseif($this->isMethod('put') || $this->isMethod('patch')){
+            $rules['product_url'] = [
+                'required',
+                Rule::unique('products', 'product_url')->ignore($productId),
+            ];
+        }
     }
     public function messages()
     {
@@ -43,7 +57,9 @@ class ProductRequest extends FormRequest
             'product_price.required' => "Product Price is Required",
             'product_price.numeric' => "Valid Product Price is Required",
             'product_color.required' => "Product Color is Required",
-            'family_color.required' => "Family Color is Required"
+            'family_color.required' => "Family Color is Required",
+            'product_url.required' => "Product URL is Required",
+            'product_url.unique' => "Product URL already exists. Please choose another.",
 
         ];
     }

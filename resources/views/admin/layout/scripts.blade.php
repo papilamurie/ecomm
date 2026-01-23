@@ -5,6 +5,10 @@
  <script>
     window.deleteCategoryUrl = "{{ route('category.image.delete') }}";
 </script>
+
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/js/select2.min.js"></script>
+
     <script src="{{ asset('admin/js/custom.js') }}"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@9"></script>

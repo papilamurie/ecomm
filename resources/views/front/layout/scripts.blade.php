@@ -14,3 +14,6 @@
      <script src="{{ asset('front/js/custom.js') }}"></script>
      <script src="{{ asset('front/js/filters.js') }}"></script>
         <script src="{{ asset('front/js/maind41d.js') }}"></script>
+
+
+

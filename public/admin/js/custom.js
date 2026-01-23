@@ -458,6 +458,34 @@ $(document).on("click", ".deleteProductImages", function () {
     });
 });
 
+$(document).ready(function () {
+
+    if ($.fn.select2 && $('#other_categories').length) {
+        $('#other_categories').select2({
+            placeholder: 'Select Categories',
+            allowClear: true,
+            closeOnSelect: false,   // 🔥 keeps dropdown open for multi-select
+            width: '100%'
+        });
+    }
+
+    // Select all
+    $('#selectAll').on('click', function () {
+        let allOptions = $('#other_categories option').map(function () {
+            return $(this).val();
+        }).get();
+
+        $('#other_categories').val(allOptions).trigger('change');
+    });
+
+    // Deselect all
+    $('#deselectAll').on('click', function () {
+        $('#other_categories').val([]).trigger('change');
+    });
+
+});
+
+
 
 
 

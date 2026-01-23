@@ -7,6 +7,7 @@ use Illuminate\Database\Seeder;
 use App\Models\Product;
 use App\Models\Category;
 use Carbon\Carbon;
+use Illuminate\Support\Str;
 
 class ProductsTableSeeder extends Seeder
 {
@@ -23,6 +24,7 @@ class ProductsTableSeeder extends Seeder
             'admin_id' => 1,
             'admin_type' => 'admin',
             'product_name' => 'Blue T-Shirt',
+            'product_url' => Str::slug('blue-t-shirt') . '-' . uniqid(),
             'product_code' => 'BT001',
             'product_color' => 'Dark Blue',
             'family_color' => 'Blue',
@@ -60,6 +62,7 @@ class ProductsTableSeeder extends Seeder
             'admin_id' => 1,
             'admin_type' => 'admin',
             'product_name' => 'Red T-Shirt',
+            'product_url' => Str::slug('red-t-shirt') . '-' . uniqid(),
             'product_code' => 'RT001',
             'product_color' => 'Red',
             'family_color' => 'Red',

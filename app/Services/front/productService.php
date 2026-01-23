@@ -18,9 +18,19 @@ class ProductService
     if (!$categoryInfo) {
         abort(404);
     }
+
+    $catIds = $categoryInfo['catIds']; // Get all relevant category IDs
+
     $query = Product::with(['product_images'])
-        ->whereIn('category_id', $categoryInfo['catIds'])
-        ->where('status', 1);
+        ->where('status', 1)
+        ->where(function($q) use ($catIds){
+            // Products Main Category
+            $q->whereIn('category_id', $catIds)
+            // Products assigned by pivot table (other categories)
+            ->orWhereHas('categories', function($subQ) use ($catIds){
+                $subQ->whereIn('category_id', $catIds);
+            });
+        });
 
         //Apply filter (sort)
     $query = $this->applyFilters($query);
@@ -173,6 +183,98 @@ public function searchProducts($query, $limit = 6)
     ->get();
 }
 
+public function getProductDetailByUrl($url)
+{
+    $product = Product::with([
+        'category.parentcategory',
+        'product_images',
+        'attributes' => function($q){
+            $q->where('status', 1)->orderBy('sort','asc');
+        },
+        'brand',
+    ])
+    ->where('product_url', $url)
+    ->where('status', 1)
+    ->first();
+
+    if ($product) {
+        if($product->group_code){
+            $product->group_products = Product::select('id','product_url','product_name','family_color','group_code')
+                ->where('group_code', $product->group_code)
+                ->where('status', 1)
+                ->get();
+        } else {
+            $product->group_products = collect(); // always a collection
+        }
+    }
+
+    // Fetch Similar Products
+    if($product){
+        $categoryId = $product->category_id;
+        $similarProducts = Product::with('product_images')
+               ->where('status',1)
+               ->where('id', '!=', $product->id)
+               ->where(function ($q) use ($product, $categoryId){
+                    $q->where('category_id', $categoryId);
+                    if($product->category && $product->category->parent_id){
+                        $q->orWhere('category_id',$product->category->parent_id);
+                    }
+                    if($product->category && $product->category->parentcategory){
+                        $q->orWhere('category_id', $product->category->parentcategory->id);
+                    }
+               })->take(10)->get();
+               $product->similar_products = $similarProducts;
+
+    }else{
+
+       $product->similar_products = collect();
+    }
+
+    return $product;
+}
+
+
+
+public function computeInitialPrice(Product $product): array
+{
+    //base price: first attribute price or product price
+    $firstAttr = $product->attributes()->first();
+    $basePrice = $firstAttr ? (float) $firstAttr->price : (float)$product->product_price;
+
+    //discounts
+    $productDiscount = (float) ($product->product_discount ?? 0);
+    $categoryDiscount = 0.0; // Not implemented yet
+    if($product->category){
+        $categoryDiscount = (float) ($product->category->discount ?? $product->category->category_discount ?? 0);
+    }
+
+    $brandDiscount = 0.0; // Not implemented yet
+    if($product->brand){
+        $brandDiscount = (float) ($product->brand->discount ?? 0);
+    }
+
+    //priority
+    $applied = 0.0;
+    if($productDiscount > 0){
+        $applied = $productDiscount;
+    }elseif($categoryDiscount > 0){
+        $applied = $categoryDiscount;
+    }elseif($brandDiscount > 0){
+        $applied = $brandDiscount;
+    }
+    $finalPrice = round($basePrice * (1 - $applied / 100));
+    $hasDiscount = $applied > 0 && $finalPrice < $basePrice;
+
+     return [
+        'base_price' => (int) $basePrice,
+        'final_price' => (int) $finalPrice,
+        'discount_percent' => (int) $applied,
+        'has_discount' => $hasDiscount,
+        'preselected_size' => $firstAttr ? $firstAttr->size : null,
+    ];
 
 
 }
+
+}
+

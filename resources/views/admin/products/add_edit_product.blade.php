@@ -106,39 +106,59 @@
 
                             {{-- Other Categories --}}
 
-                            <div class="mb-3">
-                                <label class="form-label" for="other_category">Other Categories</label>
-                                <select name="other_categories[]" id="other_categories" class="form-control" multiple>
-                                    @foreach($getCategories as $cat)
-                                        <option value="{{ $cat['id'] }}"
-                                            @if(!empty($product) && isset($product->otherCategories)
-                                            && in_array($cat['id'], $product->otherCategories->pluck('category_id')->toArray())) selected @endif>
-                                            {{ $cat['name'] }}
-                                        </option>
-                                        {{-- Subcategories --}}
-                                        @if (!empty($cat['subcategories']))
-                                            @foreach ($cat['subcategories'] as $subcat)
-                                                <option value="{{ $subcat['id'] }}"
-                                                   @if(!empty($product) && isset($product->otherCategories) &&
-                                                   in_array($subcat['id'], $product->otherCategories->pluck('category_id')->toArray())) selected @endif>
-                                                    &nbsp;&nbsp;» {{ $subcat['name'] }}
-                                                </option>
-                                                {{-- Sub-subcategories --}}
-                                                @if (!empty($subcat['subcategories']))
-                                                    @foreach ($subcat['subcategories'] as $subsubcat)
-                                                        <option value="{{ $subsubcat['id'] }}"
-                                                            @if(!empty($product) && isset($product->otherCategories) &&
-                                                            in_array($subsubcat['id'], $product->otherCategories->pluck('category_id')->toArray())) selected @endif>
-                                                            &nbsp;&nbsp;&nbsp;&nbsp;»» {{ $subsubcat['name'] }}
-                                                        </option>
-                                                    @endforeach
-                                                @endif
-                                            @endforeach
-                                        @endif
-                                    @endforeach
-                                </select>
-                                <small class="form-text text-muted">Hold CTRL (Windows) or CMD (Mac) to select multiple categories</small>
-                            </div>
+                                <div class="mb-3">
+                                    <label for="other_categories">Show in Other Categories</label>
+
+                                    <select name="other_categories[]" id="other_categories" class="form-control" multiple>
+                                        @foreach($getCategories as $cat)
+                                            <option value="{{ $cat['id'] }}"
+                                                @if(!empty($product) &&
+                                                    in_array($cat['id'], $product->categories->pluck('id')->toArray()))
+                                                    selected
+                                                @endif>
+                                                {{ $cat['name'] }}
+                                            </option>
+
+                                            {{-- Subcategories --}}
+                                            @if (!empty($cat['subcategories']))
+                                                @foreach ($cat['subcategories'] as $subcat)
+                                                    <option value="{{ $subcat['id'] }}"
+                                                        @if(!empty($product) &&
+                                                            in_array($subcat['id'], $product->categories->pluck('id')->toArray()))
+                                                            selected
+                                                        @endif>
+                                                        &nbsp;&nbsp;» {{ $subcat['name'] }}
+                                                    </option>
+
+                                                    {{-- Sub-subcategories --}}
+                                                    @if (!empty($subcat['subcategories']))
+                                                        @foreach ($subcat['subcategories'] as $subsubcat)
+                                                            <option value="{{ $subsubcat['id'] }}"
+                                                                @if(!empty($product) &&
+                                                                    in_array($subsubcat['id'], $product->categories->pluck('id')->toArray()))
+                                                                    selected
+                                                                @endif>
+                                                                &nbsp;&nbsp;&nbsp;&nbsp;»» {{ $subsubcat['name'] }}
+                                                            </option>
+                                                        @endforeach
+                                                    @endif
+                                                @endforeach
+                                            @endif
+                                        @endforeach
+                                    </select>
+
+                                    {{-- Select / Deselect --}}
+                                    <div class="mt-2">
+                                        <button type="button" id="selectAll" class="btn btn-sm btn-primary">
+                                            Select All
+                                        </button>
+                                        <button type="button" id="deselectAll" class="btn btn-sm btn-secondary">
+                                            Deselect All
+                                        </button>
+                                    </div>
+                                </div>
+
+
 
                               {{-- Brand Name --}}
                               <div class="mb-3">
@@ -162,6 +182,16 @@
                                            name="product_name" id="product_name"
                                            value="{{ old('product_name', $product->product_name ?? '') }}">
                                 </div>
+
+                                @if(!empty($product->product_url))
+                                {{-- Product URL --}}
+                                <div class="mb-3">
+                                    <label class="form-label">Product URL*</label>
+                                    <input type="text" class="form-control"
+                                           name="product_url" id="product_url"
+                                           value="{{ old('product_url', $product->product_url ?? '') }}">
+                                </div>
+                                @endif
 
                                 {{-- Product Code --}}
                                 <div class="mb-3">
