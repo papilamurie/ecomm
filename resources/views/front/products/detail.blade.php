@@ -295,10 +295,14 @@
                                     <input class="horizontal-quantity form-control" type="text" name="qty">
                                 </div>
                                 <!-- End .product-single-qty -->
-
+                                @if($product->attributes->count() > 0)
                                <button type="submit" class="btn btn-primary px-3">
                                 <i class="fa fa-shopping-cart mr-1"></i> Add To Cart
                                </button>
+                               @else
+                                <p class="text-danger"> This Product is not Availabel for Purchase </p>
+                               @endif
+
 
                              {{-- Success/Error Message --}}
                              <div class="print-success-msg" style="display:none;font-size:14px;"></div>

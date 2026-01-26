@@ -18,4 +18,5 @@
 
     <!-- Main CSS File -->
     <link rel="stylesheet" href="{{ asset('front/css/demo4.min.css') }}">
+     <link rel="stylesheet" href="{{ asset('front/css/style.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ asset('front/vendor/fontawesome-free/css/all.min.css') }}">

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Front\CartRequest;
 use App\Services\front\CartService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\View;
 
 class CartController extends Controller
 {
@@ -20,9 +21,11 @@ class CartController extends Controller
      * Display a listing of the resource.
      */
     public function index()
-    {
-        //
-    }
+{
+
+
+    return view('front.cart.index');
+}
 
     /**
      * Show the form for creating a new resource.
@@ -37,8 +40,9 @@ class CartController extends Controller
      */
     public function store(CartRequest $request)
     {
-        $result = $this->cartService->addToCart($request->all());
-        return response()->json($result);
+        $data = $request->validated();
+        $result = $this->cartService->addToCart($data);
+        return response()->json($result, $result['status'] ? 200 : 422);
     }
 
     /**
@@ -57,19 +61,41 @@ class CartController extends Controller
         //
     }
 
+    //Get /cart/refresh (Ajax fragments)
+    public function refresh()
+    {
+        $cart = $this->cartService->getCart();
+        $itemsHtml = View::make('front.cart.ajax_cart_items', [
+            'cartItems' => $cart['items'],
+        ])->render();
+        $summaryHtml = View::make('front.cart.ajax_cart_summary', [
+            'subtotal' => $cart['subtotal'],
+            'discount' => $cart['discount'],
+            'total' => $cart['total'],
+        ])->render();
+        return response()->json([
+            'items_html' => $itemsHtml,
+            'summary_html' => $summaryHtml,
+            'totalCartItems' => totalCartItems(),
+        ]);
+    }
+
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(CartRequest $request, $cartId)
     {
-        //
+        $data = $request->validated();
+        $result = $this->cartService->updateQty((int)$cartId, (int)$data['qty']);
+        return response()->json($result, $result['status'] ? 200 : 422);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy($cartId)
     {
-        //
+        $result = $this->cartService->removeItem((int)$cartId);
+         return response()->json($result, $result['status'] ? 200 : 422);
     }
 }

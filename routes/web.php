@@ -163,16 +163,14 @@ Route::get('delete-product-video/{id}', [ProductController::class, 'deleteProduc
      Route::post('update-banner-status', [BannersController::class, 'updateBannerStatus']);
 });
 
-Route::namespace('App\Http\Controllers\front')->group(function (){
+Route::middleware('web')->namespace('App\Http\Controllers\front')->group(function (){
     Route::get('/', [IndexController::class, 'index']);
 
-            //Category view route for products
+    //Category view route for products
     $catUrls = Category::where('status', 1)->pluck('url')->toArray();
     foreach($catUrls as $url){
         Route::get("/$url", [ProductFrontController::class, 'index']);
     }
-
-
 
     // product detail route
     if(Schema::hasTable('products')){
@@ -183,14 +181,18 @@ Route::namespace('App\Http\Controllers\front')->group(function (){
             }
         }catch(\Throwable $e){
             // ignore errors during migration
-
         }
     }
 
     Route::post('/get-product-price', [ProductFrontController::class, 'getProductPrice']);
 
-     // search route
+    // search route
     Route::get('/search-products', [ProductFrontController::class, 'ajaxSearch'])->name('search.products');
-    // cart route
-    Route::post('/add-to-cart', [CartController::class, 'store'])->name('cart.store');
+
+    // Cart routes - SPECIFIC routes MUST come BEFORE general routes
+    Route::get('/cart/refresh', [CartController::class, 'refresh'])->name('cart.refresh');  // ✅ Moved before /cart
+    Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+    Route::post('/cart', [CartController::class, 'store'])->name('cart.store');  // ✅ Changed from /add-to-cart
+    Route::patch('/cart/{cartId}', [CartController::class, 'update'])->name('cart.update');
+    Route::delete('/cart/{cartId}', [CartController::class, 'destroy'])->name('cart.destroy');
 });
