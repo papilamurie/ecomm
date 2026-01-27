@@ -58,7 +58,13 @@ $(document).ready(function () {
             savedOrder: {!! json_encode($filterValuesSaveOrder ?? []) !!}.map(x => parseInt(x)),
             hiddenCols: {!! json_encode($filterValuesHiddenCols ?? []) !!}.map(x => parseInt(x)),
             tableKey: "filter_values"
-        }
+        },
+        {
+            id: "coupons",
+            savedOrder: {!! json_encode($couponsSaveOrder ?? []) !!}.map(x => parseInt(x)),
+            hiddenCols: {!! json_encode($couponsHiddenCols ?? []) !!}.map(x => parseInt(x)),
+            tableKey: "coupons"
+        },
 
     ];
 

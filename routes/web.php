@@ -12,12 +12,14 @@ use App\Models\Category;
 use App\Http\Controllers\admin\CategoryController;
 use App\Http\Controllers\admin\ProductController;
 use App\Http\Controllers\admin\BannersController;
+use App\Http\Controllers\admin\CouponController;
 use App\Http\Controllers\admin\FilterController;
 use App\Http\Controllers\admin\FilterValueController;
 use App\Http\Controllers\front\CartController;
 //Front Controllers
 use App\Http\Controllers\front\IndexController;
 use App\Http\Controllers\front\ProductController as ProductFrontController;
+use App\Http\Controllers\front\CouponController  as CouponFrontController;
 use App\Models\Product;
 use Illuminate\Support\Facades\Schema;
 
@@ -161,6 +163,10 @@ Route::get('delete-product-video/{id}', [ProductController::class, 'deleteProduc
     //Banners Routes
      Route::resource('banners', BannersController::class);
      Route::post('update-banner-status', [BannersController::class, 'updateBannerStatus']);
+
+     //Coupons Routes
+      Route::resource('coupons', CouponController::class);
+      Route::post('update-coupon-status', [CouponController::class, 'updateCouponStatus']);
 });
 
 Route::middleware('web')->namespace('App\Http\Controllers\front')->group(function (){
@@ -195,4 +201,12 @@ Route::middleware('web')->namespace('App\Http\Controllers\front')->group(functio
     Route::post('/cart', [CartController::class, 'store'])->name('cart.store');  // ✅ Changed from /add-to-cart
     Route::patch('/cart/{cartId}', [CartController::class, 'update'])->name('cart.update');
     Route::delete('/cart/{cartId}', [CartController::class, 'destroy'])->name('cart.destroy');
+
+
+    // Apply Coupon
+    Route::post('/cart/apply-coupon', [CouponFrontController::class, 'apply'])->name('cart.apply.coupon');
+
+    //Remove Coupon
+    Route::post('/cart/remove-coupon', [CouponFrontController::class, 'remove'])->name('cart.remove.coupon');
+
 });

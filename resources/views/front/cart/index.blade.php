@@ -34,7 +34,7 @@
 								</thead>
 								<tbody id="cart-items-body">
                                   <tr>
-                                    <td colspan="5">
+                                    <td colspan="7">
                                                 Loading......
                                     </td>
                                   </tr>
@@ -42,31 +42,27 @@
 
 
 								<tfoot>
-									<tr>
-										<td colspan="5" class="clearfix">
-											<div class="float-left">
-												<div class="cart-discount">
-													<form action="#">
-														<div class="input-group">
-															<input type="text" class="form-control form-control-sm"
-																placeholder="Coupon Code" required>
-															<div class="input-group-append">
-																<button class="btn btn-sm" type="submit">Apply
-																	Coupon</button>
-															</div>
-														</div><!-- End .input-group -->
-													</form>
-												</div>
-											</div><!-- End .float-left -->
+                                <tr>
+                                    <td colspan="7" class="clearfix">
+                                        <div class="float-left">
+                                            <div class="cart-discount">
+                                                <div id="coupon-msg" class="mb-2"></div>
+                                                <form id="applyCouponForm" action="javascript:;">
+                                                    <div class="input-group">
+                                                        <input type="text" name="coupon_code" class="form-control form-control-sm"
+                                                            placeholder="Coupon Code" id="coupon_code">
+                                                        <div class="input-group-append">
+                                                            <button class="btn btn-sm" type="submit">Apply Coupon</button>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div><!-- End .float-left -->
 
-											<div class="float-right">
-												<button type="submit" class="btn btn-shop btn-update-cart">
-													Update Cart
-												</button>
-											</div><!-- End .float-right -->
-										</td>
-									</tr>
-								</tfoot>
+
+                                    </td>
+                                </tr>
+                            </tfoot>
 							</table>
 						</div><!-- End .cart-table-container -->
 					</div><!-- End .col-lg-8 -->

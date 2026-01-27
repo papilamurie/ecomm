@@ -170,5 +170,67 @@ $(document).ready(function(){
         });
     });
 
+    function replaceFragments(resp){
+        if(!resp) return;
+        if(resp.items_html !== undefined){
+            $("#cart-items-body").html(resp.items_html);
+        }
+        if(resp.summary_html !== undefined){
+            $("#cart-summary-container").html(resp.summary_html);
+        }
+        if(resp.totalCartItems !== undefined){
+            $(".totalCartItems").text(resp.totalCartItems);
+        }
+    }
+
+    //Apply Coupon
+    $(document).on('submit','#applyCouponForm',function(e){
+        e.preventDefault();
+        var code = $('#coupon_code').val().trim();
+        if(!code){
+            $('#coupon-msg').html('<div class="alert alert-danger">Please Enter Coupon Code</div>');
+            return;
+        }
+        $.ajax({
+            url: '/cart/apply-coupon',
+            method: 'POST',
+            headers: {'X-CSRF-TOKEN': csrf},
+            data: { coupon_code: code },
+            success: function(resp){
+                $('#coupon-msg').html('<div class="alert alert-success">'+resp.message+'</div>');
+                replaceFragments(resp);
+            },
+            error: function(xhr){
+                if(xhr.responseJSON){
+                    const resp = xhr.responseJSON;
+                    $('#coupon-msg').html('<div class="alert alert-danger">'+(resp.message || 'Error')+'</div>');
+                    replaceFragments(resp);
+                }else{
+                    $('#coupon-msg').html('<div class="alert alert-danger">Error applying coupon</div>');
+                }
+            }
+        });
+    });
+
+    //Remove Coupon
+$(document).on('click','#removeCouponBtn', function(e){
+    e.preventDefault();
+    $.ajax({  // ✅ Fixed: was 'a.ajax'
+        url: '/cart/remove-coupon',
+        method: 'POST',
+        headers: {'X-CSRF-TOKEN': csrf},
+        success: function(resp){
+            $('#coupon-msg').html('<div class="alert alert-success">'+resp.message+'</div>');
+            replaceFragments(resp);
+            $('#coupon_code').val('');
+        },
+        error: function(){
+            $('#coupon-msg').html('<div class="alert alert-danger">Error Removing Coupon</div>');
+        }
+    });
+});
+
 })(jQuery);
+
+
 

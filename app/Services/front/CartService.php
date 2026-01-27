@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\View;
 
+use function Symfony\Component\Clock\now;
+
 class CartService
 {
 
@@ -62,13 +64,76 @@ public function getCart(): array
         ];
     }
 
-    $discount = 0;
-    $total = $subtotal - $discount;
+    $couponDiscount = 0;
+    $appliedCouponId = session('applied_coupon_id');
+    if($appliedCouponId){
+        //defensive: import coupon on top: use App\Models\Coupon
+        $coupon = \App\Models\Coupon::find($appliedCouponId);
+
+        //if coupon not found/inactive or expired
+if(!$coupon || !$coupon->status || ($coupon->expiry_date && $coupon->expiry_date->isPast()))
+            {
+                //invalid coupon ---Revome Session
+                Session::forget(['applied_coupon','applied_coupon_id', 'applied_coupon_discount']);
+                 $coupon = null;
+            }else{
+                //determine the "applicable amount" for the coupon
+                // if coupon has category restriction, only sum those items' line total
+                $applicableAmount = $subtotal;
+
+                if(!empty($coupon->categories)){
+                    //categories might be stored as array or JSON string; handle both
+                    $allowedCats = $coupon->categories;
+                    if(is_string($allowedCats)){
+                        $decoded = @json_decode($allowedCats, true);
+                        if(is_array($decoded)) $allowedCats = $decoded;
+                    }
+
+                    if(is_array($allowedCats) && count($allowedCats) > 0){
+                        $applicableAmount =0;
+                        foreach($items as $it){
+                            if(!empty($it['category_id']) && in_array($it['category_id'], $allowedCats)){
+                                $applicableAmount += $it['line_total'];
+                            }
+                        }
+                    }
+                }
+
+                // also check min_cart_value if set on coupon
+                if(!empty($coupon->min_cart_value) && $subtotal < (float)$coupon->min_cart_value){
+                    //not eligible
+                     Session::forget(['applied_coupon','applied_coupon_id', 'applied_coupon_discount']);
+                        $coupon = null;
+                }else{
+                    //compute discount based on amount_type
+                    if($coupon){
+                        if($coupon->amount_type === 'percentage'){
+                            $couponDiscount = round($applicableAmount * ($coupon->amount/100),2);
+                        }else{
+                            //fixed amount - but cannot exceed applicable amount
+                            $couponDiscount = min((float)$coupon->amount, $applicableAmount);
+                        }
+
+                        //optional: if coupon has a max_discount field, enforce it
+                        if(!empty($coupon->max_discount)){
+                            $couponDiscount = min($couponDiscount, (float)$coupon->max_discount);
+                        }
+
+                        //store recomputed discount in session (optional)
+                        Session::put('applied_coupon_discount', $couponDiscount);
+                    }
+                }
+            }
+    }
+    //finalize totals
+    $subtotal= (float) $subtotal;
+    $couponDiscount = (float) $couponDiscount;
+    $total = max(0, $subtotal - $couponDiscount);
 
     return [
         'items' => $items,
         'subtotal' => $subtotal,
-        'discount' => $discount,
+        'discount' => $couponDiscount,
         'total' => $total,
     ];
 }

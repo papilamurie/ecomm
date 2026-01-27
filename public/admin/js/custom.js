@@ -266,6 +266,39 @@ $(document).on("click", ".updateBannerStatus", function () {
     });
 });
 
+// Update Coupons status
+$(document).on("click", ".updateCouponStatus", function () {
+
+    var icon = $(this).find("i");
+    var status = icon.attr("data-status"); // FIXED
+    var coupon_id = $(this).data("coupon_id");
+
+    $.ajax({
+        type: "POST",
+        url: "/admin/update-coupon-status",
+        data: {
+            status: status,
+            coupon_id: coupon_id,
+            _token: $('meta[name="csrf-token"]').attr("content")
+        },
+        success: function (resp) {
+
+            if (resp.status == 0) {
+                $("a[data-coupon_id='" + coupon_id + "']").html(
+                    "<i class='fas fa-toggle-off' style='color:grey' data-status='Inactive'></i>"
+                );
+            } else if (resp.status == 1) {
+                $("a[data-coupon_id='" + coupon_id + "']").html(
+                    "<i class='fas fa-toggle-on' style='color:#3f6ed3' data-status='Active'></i>"
+                );
+            }
+        },
+        error: function (xhr) {
+            alert("Error: " + xhr.status);
+        }
+    });
+});
+
 // Update Filter Status
 $(document).on("click", ".updateFilterStatus", function () {
 
@@ -483,7 +516,94 @@ $(document).ready(function () {
         $('#other_categories').val([]).trigger('change');
     });
 
+    //Initialize Select 2 if available
+    if($.fn.select2){
+        $('#categoriesSelect').select2({
+            width:'100%',
+            placeholder: 'Select categories',
+            allowClear: true
+        });
+
+        $('#brandsSelect').select2({
+            width:'100%',
+            placeholder: 'Select brands',
+            allowClear: true
+        });
+
+        $('#usersSelect').select2({
+            width: '100%',
+            tags: true,
+            tokenSeparators: [',',';'],
+            placeholder: 'Select or type email addresses',
+            allowClear: true
+        });
+    }
+
+    //Coupon code Generator
+    function generateCouponCode(length=8){
+        var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        var result = '';
+        for(var i=0; i < length; i++){
+            result += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return result;
+    }
+
+    //Toggle Coupon input visibility
+    function updateCouponFieldVisibility(){
+        var option = $('input[name="coupon_option"]:checked').val();
+        if(option === 'Automatic'){
+            $('#regenCoupon').show();
+            if(!$('#coupon_code').val() || $('#coupon_code').val().trim() === ''){
+                $('#coupon_code').val(generateCouponCode());
+            }
+        }else{
+            $('#regenCoupon').hide();
+        }
+    }
+
+    //Initial run on page load
+    updateCouponFieldVisibility();
+
+    //When radio changes
+    $(document).on('change', 'input[name="coupon_option"]', function(){
+        updateCouponFieldVisibility();
+    });
+
+    //Regenerate coupon code on button click
+    $(document).on('click', '#regenCoupon', function(e){
+        e.preventDefault();
+        $('#coupon_code').val(generateCouponCode()).focus();
+    });
+
+    //Select All functionality
+    $(document).on('click', '.select-all', function(e){
+        e.preventDefault();
+        var target = $(this).data('target');
+        var $sel = $(target);
+        if(!$sel.length) return;
+
+        var vals = [];
+        $sel.find('option').each(function(){
+            vals.push($(this).val());
+        });
+        $sel.val(vals).trigger('change');
+    });
+
+    //Deselect All functionality
+    $(document).on('click', '.deselect-all', function(e){
+        e.preventDefault();
+        var target = $(this).data('target');
+        var $sel = $(target);
+        if(!$sel.length) return;
+        $sel.val([]).trigger('change');
+    });
 });
+
+
+
+
+
 
 
 

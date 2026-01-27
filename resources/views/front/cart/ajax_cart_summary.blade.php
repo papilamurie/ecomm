@@ -1,87 +1,39 @@
-<div class="cart-summary">
-							<h3>CART TOTALS</h3>
+                <div class="cart-summary">
+                    <h3>CART TOTALS</h3>
 
-							<table class="table table-totals">
-								<tbody>
-									<tr>
-										<td>Subtotal</td>
-										<td>$ {{ number_format($subtotal) }}</td>
-									</tr>
-                                    <tr>
-										<td>Discount</td>
-										<td>${{ number_format($discount) }}</td>
-									</tr>
+                    <!-- ✅ Add this for coupon messages -->
+                    <div id="coupon-msg" class="mb-3"></div>
 
-									{{-- <tr>
-										<td colspan="2" class="text-left">
-											<h4>Shipping</h4>
+                    <table class="table table-totals">
+                        <tbody>
+                            <tr>
+                                <td>Subtotal</td>
+                                <td>${{ number_format($subtotal) }}</td>
+                            </tr>
+                            <tr>
+                                <td>Discount</td>
+                                <td>${{ number_format($discount) }}</td>
+                            </tr>
+                        </tbody>
 
-											<div class="form-group form-group-custom-control">
-												<div class="custom-control custom-radio">
-													<input type="radio" class="custom-control-input" name="radio"
-														checked>
-													<label class="custom-control-label">Local pickup</label>
-												</div><!-- End .custom-checkbox -->
-											</div><!-- End .form-group -->
+                        <tfoot>
+                            <tr>
+                                <td>Total</td>
+                                <td>${{ number_format($total) }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
 
-											<div class="form-group form-group-custom-control mb-0">
-												<div class="custom-control custom-radio mb-0">
-													<input type="radio" name="radio" class="custom-control-input">
-													<label class="custom-control-label">Flat rate</label>
-												</div><!-- End .custom-checkbox -->
-											</div><!-- End .form-group -->
+                    <div class="checkout-methods">
+                        <a href="#" class="btn btn-block btn-dark">Proceed to Checkout
+                            <i class="fa fa-arrow-right"></i></a>
+                    </div>
 
-											<form action="#">
-												<div class="form-group form-group-sm">
-													<label>Shipping to <strong>NY.</strong></label>
-													<div class="select-custom">
-														<select class="form-control form-control-sm">
-															<option value="USA">United States (US)</option>
-															<option value="Turkey">Turkey</option>
-															<option value="China">China</option>
-															<option value="Germany">Germany</option>
-														</select>
-													</div><!-- End .select-custom -->
-												</div><!-- End .form-group -->
-
-												<div class="form-group form-group-sm">
-													<div class="select-custom">
-														<select class="form-control form-control-sm">
-															<option value="NY">New York</option>
-															<option value="CA">California</option>
-															<option value="TX">Texas</option>
-														</select>
-													</div><!-- End .select-custom -->
-												</div><!-- End .form-group -->
-
-												<div class="form-group form-group-sm">
-													<input type="text" class="form-control form-control-sm"
-														placeholder="Town / City">
-												</div><!-- End .form-group -->
-
-												<div class="form-group form-group-sm">
-													<input type="text" class="form-control form-control-sm"
-														placeholder="ZIP">
-												</div><!-- End .form-group -->
-
-												<button type="submit" class="btn btn-shop btn-update-total">
-													Update Totals
-												</button>
-											</form>
-										</td>
-									</tr> --}}
-								</tbody>
-
-								<tfoot>
-									<tr>
-										<td>Total</td>
-										<td>${{ number_format($total) }}</td>
-									</tr>
-								</tfoot>
-							</table>
-
-							<div class="checkout-methods">
-								<a href="cart.html" class="btn btn-block btn-dark">Proceed to Checkout
-									<i class="fa fa-arrow-right"></i></a>
-							</div>
-						</div><!-- End .cart-summary -->
+                    @if(session('applied_coupon'))
+                    <div class="text-center mt-2">
+                        <button id="removeCouponBtn" class="btn btn-link">
+                            Remove Coupon {{ session('applied_coupon') }}
+                        </button>
+                    </div>
+                    @endif
+                </div>
