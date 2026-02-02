@@ -332,6 +332,42 @@ $(document).on("click", ".updateUserStatus", function () {
     });
 });
 
+// Update Currency status
+$(document).on("click", ".updateCurrencyStatus", function () {
+    var icon = $(this).find("i");
+    var status = icon.attr("data-status");
+    var currency_id = $(this).data("currency_id");
+
+   $.ajax({
+        type: "POST",
+        url: "/admin/update-currency-status",
+        data: {
+            status: status,
+            currency_id: currency_id,
+            _token: $('meta[name="csrf-token"]').attr("content")
+        },
+        success: function (resp) {
+            if (resp.status === 'success') {
+                if (resp.status_value == 0) {
+                    $("a[data-currency_id='" + currency_id + "']").html(
+                        "<i class='fas fa-toggle-off' style='color:grey' data-status='Inactive'></i>"
+                    );
+                } else if (resp.status_value == 1) {
+                    $("a[data-currency_id='" + currency_id + "']").html(
+                        "<i class='fas fa-toggle-on' style='color:#3f6ed3' data-status='Active'></i>"
+                    );
+                }
+            } else {
+                alert(resp.message || 'Error updating currency status');
+            }
+        },
+        error: function (xhr) {
+            console.log("Error:", xhr);
+            alert("Error: " + xhr.status);
+        }
+    });
+});
+
 // Update Filter Status
 $(document).on("click", ".updateFilterStatus", function () {
 

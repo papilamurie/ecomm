@@ -107,25 +107,28 @@ class CurrencyService
     }
 
     public function updateCurrencyStatus($data)
-    {
-        $currency = Currency::findOrFail($data['currency_id'] ?? $data['id']); // Fixed: findorFail -> findOrFail
+{
+    $currency = Currency::findOrFail($data['currency_id'] ?? $data['id']);
 
-        // Prevent disabling base currency
-        if ($currency->is_base && isset($data['status']) && (int)$data['status'] === 0) {
-            return 1; // Keep it active
-        }
-
-        if (isset($data['status'])) {
-            $status = (int)$data['status'];
-        } else {
-            $status = $currency->status ? 0 : 1; // Toggle
-        }
-
-        $currency->status = $status;
-        $currency->save();
-
-        return $currency->status;
+    // Get the new status (either from 'new_status' set in controller or toggle)
+    if (isset($data['new_status'])) {
+        $status = (int)$data['new_status'];
+    } elseif (isset($data['status'])) {
+        $status = (int)$data['status'];
+    } else {
+        $status = $currency->status ? 0 : 1; // Toggle
     }
+
+    // Prevent disabling base currency
+    if ($currency->is_base && $status === 0) {
+        throw new \Exception('Cannot disable base currency!');
+    }
+
+    $currency->status = $status;
+    $currency->save();
+
+    return $currency->status;
+}
 
     public function deleteCurrency($id)
     {

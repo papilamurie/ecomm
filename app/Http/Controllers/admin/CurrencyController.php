@@ -112,33 +112,40 @@ class CurrencyController extends Controller
         return redirect()->route('currencies.index')->with('error_message', $result['message'] ?? 'Could not delete currency!');
     }
 
-    public function updateCurrencyStatus(Request $request)
-    {
-        if ($request->ajax()) {
-            $data = $request->all();
+   public function updateCurrencyStatus(Request $request)
+{
+    if ($request->ajax()) {
+        $data = $request->all();
 
-            if (empty($data['currency_id']) && !empty($data['id'])) {
-                $data['currency_id'] = $data['id'];
-            }
-
-            try {
-                $newStatus = $this->currencyService->updateCurrencyStatus($data);
-                return response()->json([
-                    'status' => 'success',
-                    'currency_id' => $data['currency_id'],
-                    'status_value' => (int)$newStatus
-                ]);
-            } catch (\Exception $e) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => $e->getMessage()
-                ], 500);
-            }
+        if (empty($data['currency_id']) && !empty($data['id'])) {
+            $data['currency_id'] = $data['id'];
         }
 
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Invalid request'
-        ], 400);
+        // Determine new status based on current status text from frontend
+        if (isset($data['status'])) {
+            // If status is "Active", make it inactive (0), if "Inactive", make it active (1)
+            $data['new_status'] = ($data['status'] == 'Active') ? 0 : 1;
+        }
+
+        try {
+            $newStatus = $this->currencyService->updateCurrencyStatus($data);
+
+            return response()->json([
+                'status' => 'success',
+                'currency_id' => $data['currency_id'],
+                'status_value' => (int)$newStatus
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
+
+    return response()->json([
+        'status' => 'error',
+        'message' => 'Invalid request'
+    ], 400);
+}
 }
