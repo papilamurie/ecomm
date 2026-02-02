@@ -13,13 +13,19 @@ use App\Http\Controllers\admin\CategoryController;
 use App\Http\Controllers\admin\ProductController;
 use App\Http\Controllers\admin\BannersController;
 use App\Http\Controllers\admin\CouponController;
+use App\Http\Controllers\admin\CurrencyController;
 use App\Http\Controllers\admin\FilterController;
 use App\Http\Controllers\admin\FilterValueController;
+use App\Http\Controllers\admin\UserController;
 use App\Http\Controllers\front\CartController;
+
+
 //Front Controllers
 use App\Http\Controllers\front\IndexController;
 use App\Http\Controllers\front\ProductController as ProductFrontController;
 use App\Http\Controllers\front\CouponController  as CouponFrontController;
+use App\Http\Controllers\front\AuthController;
+use App\Http\Controllers\front\CurrencySwitchController;
 use App\Models\Product;
 use Illuminate\Support\Facades\Schema;
 
@@ -167,7 +173,21 @@ Route::get('delete-product-video/{id}', [ProductController::class, 'deleteProduc
      //Coupons Routes
       Route::resource('coupons', CouponController::class);
       Route::post('update-coupon-status', [CouponController::class, 'updateCouponStatus']);
+
+     //Users Routes(Admin dashboard)
+     Route::resource('users', UserController::class);
+     Route::post('update-user-status', [UserController::class, 'updateUserStatus']);
+
+     //Currency Routes(Admin dashboard)
+     Route::resource('currencies', CurrencyController::class);
+     Route::post('update-currency-status', [CurrencyController::class, 'updateCurrencyStatus']);
+
 });
+
+
+
+
+
 
 Route::middleware('web')->namespace('App\Http\Controllers\front')->group(function (){
     Route::get('/', [IndexController::class, 'index']);
@@ -209,4 +229,18 @@ Route::middleware('web')->namespace('App\Http\Controllers\front')->group(functio
     //Remove Coupon
     Route::post('/cart/remove-coupon', [CouponFrontController::class, 'remove'])->name('cart.remove.coupon');
 
+    //Currency Route
+    Route::post('/currency/switch', [CurrencySwitchController::class, 'switch'])->name('currency.switch');
+
+    //User Routes
+    Route::prefix('user')->name('user.')->group(function(){
+        Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+        Route::post('/login', [AuthController::class, 'handleLogin'])->name('login.post');
+        Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+        Route::post('/register', [AuthController::class, 'register'])->name('register.post');
+        Route::post('/logout', [AuthController::class, 'handleLogout'])->name('logout')->middleware('auth');
+    });
+
 });
+
+
