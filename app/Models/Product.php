@@ -119,11 +119,14 @@ class Product extends Model
             $discountAmt = $basePrice - $final;
             return [
                 'status' => true,
-                'sku' => $attribute->sku,
                 'product_price' => (int) $basePrice,
                 'final_price' => (int) $final,
                 'discount' => (int) $discountAmt,
-                'percent' => (int) $applied
+                'percent' => (int) $applied,
+                'product_price_formatted' => formatCurrency($basePrice),
+                'final_price_formatted' => formatCurrency($final),
+                'product_price_display' => formatCurrency($basePrice),
+                'final_price_display' => formatCurrency($final),
             ];
 
     }

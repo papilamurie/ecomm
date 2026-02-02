@@ -190,7 +190,7 @@ class Admincontroller extends Controller
   public function updateRole($id) {
     $subadminroles = AdminsRole::where('subadmin_id', $id)->get()->toArray();
     $subadmindetails = Admin::where('id', $id)->first()->toArray();
-    $modules = ['categories', 'products','orders','users','banners','brands','filters','filter_values','coupons'];
+    $modules = ['categories', 'products','orders','users','banners','brands','filters','filter_values','coupons','currencies'];
     $title = "Update " . $subadmindetails['name'] . " Subadmin Roles/Permissions";
 
     return view('admin.subadmins.update_roles', compact(

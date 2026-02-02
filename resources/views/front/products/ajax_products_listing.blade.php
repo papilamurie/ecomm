@@ -66,12 +66,12 @@
 
                                          @if($product['product_discount']>0)
                                 <div class="price-box">
-                                    <del class="old-price">${{ $product['product_price'] }}</del>
-                                    <span class="product-price">${{ $product['final_price'] }}</span>
+                                    <del class="old-price">{{ formatCurrency($product['product_price']) }}</del>
+                                    <span class="product-price">{{ formatCurrency($product['final_price']) }}</span>
                                 </div>
                                 @else
                                  <div class="price-box">
-                                   <span class="product-price">${{ $product['final_price'] }}</span>
+                                   <span class="product-price">{{ formatCurrency($product['final_price']) }}</span>
                                 </div>
                                 @endif
                                 <!-- End .price-box -->
@@ -167,7 +167,7 @@
                                                     <input type="checkbox" name="price" id="price{{ $key }}"
                                                         value="{{ $price }}" class="filterAjax" {{ in_array($price, $selectedPrices) ? 'checked' : '' }} style="flex-shrink: 0;">
                                                     <span style="display: inline-block; padding: 6px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; user-select: none; white-space: nowrap;">
-                                                        ${{ $price }}
+                                                        {{ formatCurrency($price) }}
                                                     </span>
                                                 </label>
                                             @endforeach

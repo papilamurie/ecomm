@@ -27,7 +27,7 @@ class CouponController extends Controller
      */
     public function index()
     {
-        Session::put('page', 'banners');
+        Session::put('page', 'coupons');
 
     $result = $this->couponService->coupons();
 

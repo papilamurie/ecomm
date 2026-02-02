@@ -299,6 +299,39 @@ $(document).on("click", ".updateCouponStatus", function () {
     });
 });
 
+// Update User status
+$(document).on("click", ".updateUserStatus", function () {
+
+    var icon = $(this).find("i");
+    var status = icon.attr("data-status"); // FIXED
+    var user_id = $(this).data("user_id");
+
+    $.ajax({
+        type: "POST",
+        url: "/admin/update-user-status",
+        data: {
+            status: status,
+            user_id: user_id,
+            _token: $('meta[name="csrf-token"]').attr("content")
+        },
+        success: function (resp) {
+
+            if (resp.status == 0) {
+                $("a[data-user_id='" + user_id + "']").html(
+                    "<i class='fas fa-toggle-off' style='color:grey' data-status='Inactive'></i>"
+                );
+            } else if (resp.status == 1) {
+                $("a[data-user_id='" + user_id + "']").html(
+                    "<i class='fas fa-toggle-on' style='color:#3f6ed3' data-status='Active'></i>"
+                );
+            }
+        },
+        error: function (xhr) {
+            alert("Error: " + xhr.status);
+        }
+    });
+});
+
 // Update Filter Status
 $(document).on("click", ".updateFilterStatus", function () {
 

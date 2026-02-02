@@ -161,12 +161,12 @@
                                 <!-- End .product-container -->
                                   @if($product['product_discount']>0)
                                 <div class="price-box">
-                                    <del class="old-price">${{ $product['product_price'] }}</del>
-                                    <span class="product-price">${{ $product['final_price'] }}</span>
+                                    <del class="old-price">{{ formatCurrency($product['product_price']) }}</del>
+                                    <span class="product-price">{{ formatCurrency($product['final_price']) }}</span>
                                 </div>
                                 @else
                                  <div class="price-box">
-                                   <span class="product-price">${{ $product['final_price'] }}</span>
+                                   <span class="product-price">{{ formatCurrency($product['final_price']) }}</span>
                                 </div>
                                 @endif
                                 <!-- End .price-box -->
@@ -258,12 +258,12 @@
                                 <!-- End .product-container -->
                              @if($newproduct['product_discount']>0)
                                 <div class="price-box">
-                                    <del class="old-price">${{ $newproduct['product_price'] }}</del>
-                                    <span class="product-price">${{ $newproduct['final_price'] }}</span>
+                                    <del class="old-price">{{ formatCurrency($newproduct['product_price']) }}</del>
+                                    <span class="product-price">{{ formatCurrency($newproduct['final_price']) }}</span>
                                 </div>
                                 @else
                                  <div class="price-box">
-                                   <span class="product-price">${{ $newproduct['final_price'] }}</span>
+                                   <span class="product-price">{{ formatCurrency($newproduct['final_price']) }}</span>
                                 </div>
                                 @endif
                                 <!-- End .price-box -->

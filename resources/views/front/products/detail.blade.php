@@ -210,10 +210,10 @@
 
                             <div class="price-box getAttributePrice">
                                 @if($pricing['has_discount'])
-                                <span class="old-price">${{ number_format($pricing['base_price']) }}</span>
-                                <span class="new-price">${{ number_format($pricing['final_price']) }}</span>
+                                <span class="old-price">{{ formatCurrency(number_format($pricing['base_price'])) }}</span>
+                                <span class="new-price">${{ formatCurrency(number_format($pricing['final_price'])) }}</span>
                                 @else
-                                <span class="new-price">${{ number_format($pricing['final_price']) }}</span>
+                                <span class="new-price">${{ formatCurrency(number_format($pricing['final_price'])) }}</span>
                                 @endif
                             </div>
                             <!-- End .price-box -->

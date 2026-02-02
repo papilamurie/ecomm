@@ -15,5 +15,8 @@
      <script src="{{ asset('front/js/filters.js') }}"></script>
         <script src="{{ asset('front/js/maind41d.js') }}"></script>
 
-
+<script>
+window.appConfig = window.appConfig || {};
+window.appConfig.currencySwitchUrl = "{{ route('currency.switch') }}";
+ </script>
 

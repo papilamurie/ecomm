@@ -127,79 +127,73 @@
                 </ul>
               </li>
 
-
-              <li class="nav-item">
-                <a href="#" class="nav-link">
-                  <i class="nav-icon bi bi-clipboard-fill"></i>
+                <li class="nav-item {{ in_array(Session::get('page'), ['coupons']) ? 'menu-open' : '' }}">
+                <a href="#" class="nav-link {{ in_array(Session::get('page'), ['coupons']) ? 'active' : '' }}">
+                  <i class="nav-icon bi bi-tree-fill"></i>
                   <p>
-                    Layout Options
-                    <span class="nav-badge badge text-bg-secondary me-3">6</span>
+                    Coupon Management
+
                     <i class="nav-arrow bi bi-chevron-right"></i>
                   </p>
                 </a>
                 <ul class="nav nav-treeview">
-                  <li class="nav-item">
-                    <a href="./layout/unfixed-sidebar.html" class="nav-link">
-                      <i class="nav-icon bi bi-circle"></i>
-                      <p>Default Sidebar</p>
-                    </a>
+                <li class="nav-item">
+                    <a href="{{ url('admin/coupons') }}" class="nav-link {{ (Session::get('page')=='coupons')? 'active':'' }}">
+                 <i class="nav-icon bi bi-circle"></i>
+                  <p>Coupons</p>
+                </a>
                   </li>
-                  <li class="nav-item">
-                    <a href="./layout/fixed-sidebar.html" class="nav-link">
-                      <i class="nav-icon bi bi-circle"></i>
-                      <p>Fixed Sidebar</p>
-                    </a>
+                  </ul>
+              </li>
+
+              <li class="nav-item {{ in_array(Session::get('page'), ['users']) ? 'menu-open' : '' }}">
+                <a href="#" class="nav-link {{ in_array(Session::get('page'), ['users']) ? 'active' : '' }}">
+                  <i class="nav-icon bi bi-box-seam-fill"></i>
+                  <p>
+                    User Management
+
+                    <i class="nav-arrow bi bi-chevron-right"></i>
+                  </p>
+                </a>
+                <ul class="nav nav-treeview">
+                <li class="nav-item">
+                    <a href="{{ url('admin/users') }}" class="nav-link {{ (Session::get('page')=='users')? 'active':'' }}">
+                 <i class="nav-icon bi bi-circle"></i>
+                  <p>Users</p>
+                </a>
                   </li>
-                  <li class="nav-item">
-                    <a href="./layout/fixed-header.html" class="nav-link">
-                      <i class="nav-icon bi bi-circle"></i>
-                      <p>Fixed Header</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="./layout/fixed-footer.html" class="nav-link">
-                      <i class="nav-icon bi bi-circle"></i>
-                      <p>Fixed Footer</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="./layout/fixed-complete.html" class="nav-link">
-                      <i class="nav-icon bi bi-circle"></i>
-                      <p>Fixed Complete</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="./layout/layout-custom-area.html" class="nav-link">
-                      <i class="nav-icon bi bi-circle"></i>
-                      <p>Layout <small>+ Custom Area </small></p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="./layout/sidebar-mini.html" class="nav-link">
-                      <i class="nav-icon bi bi-circle"></i>
-                      <p>Sidebar Mini</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="./layout/collapsed-sidebar.html" class="nav-link">
-                      <i class="nav-icon bi bi-circle"></i>
-                      <p>Sidebar Mini <small>+ Collapsed</small></p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="./layout/logo-switch.html" class="nav-link">
-                      <i class="nav-icon bi bi-circle"></i>
-                      <p>Sidebar Mini <small>+ Logo Switch</small></p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="./layout/layout-rtl.html" class="nav-link">
-                      <i class="nav-icon bi bi-circle"></i>
-                      <p>Layout RTL</p>
-                    </a>
-                  </li>
+
+
+
+
                 </ul>
               </li>
+
+              <li class="nav-item {{ in_array(Session::get('page'), ['currencies']) ? 'menu-open' : '' }}">
+                <a href="#" class="nav-link {{ in_array(Session::get('page'), ['currencies']) ? 'active' : '' }}">
+                  <i class="nav-icon bi bi-box-seam-fill"></i>
+                  <p>
+                    Currency Management
+
+                    <i class="nav-arrow bi bi-chevron-right"></i>
+                  </p>
+                </a>
+                <ul class="nav nav-treeview">
+                <li class="nav-item">
+                    <a href="{{ url('admin/currencies') }}" class="nav-link {{ (Session::get('page')=='currencies')? 'active':'' }}">
+                 <i class="nav-icon bi bi-circle"></i>
+                  <p>Currencies</p>
+                </a>
+                  </li>
+
+
+
+
+                </ul>
+              </li>
+
+
+
               <li class="nav-item">
                 <a href="#" class="nav-link">
                   <i class="nav-icon bi bi-tree-fill"></i>

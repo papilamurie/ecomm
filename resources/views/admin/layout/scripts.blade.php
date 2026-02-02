@@ -65,6 +65,18 @@ $(document).ready(function () {
             hiddenCols: {!! json_encode($couponsHiddenCols ?? []) !!}.map(x => parseInt(x)),
             tableKey: "coupons"
         },
+        {
+            id: "users",
+            savedOrder: {!! json_encode($usersSaveOrder ?? []) !!}.map(x => parseInt(x)),
+            hiddenCols: {!! json_encode($usersHiddenCols ?? []) !!}.map(x => parseInt(x)),
+            tableKey: "users"
+        },
+        {
+            id: "currencies",
+            savedOrder: {!! json_encode($currenciesSaveOrder ?? []) !!}.map(x => parseInt(x)),
+            hiddenCols: {!! json_encode($currenciesHiddenCols ?? []) !!}.map(x => parseInt(x)),
+            tableKey: "currencies"
+        },
 
     ];
 

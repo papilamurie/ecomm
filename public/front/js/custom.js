@@ -17,9 +17,10 @@ $(document).ready(function(){
     });
 });
 
- $(document).on("change", ".getPrice", function () {
-    let size = $(this).val();
-    let product_id = $(this).data("product-id"); // better than attr()
+// Product Attribute Price AJAX
+$(document).on("change", ".getPrice", function () {
+    var size = $(this).val();
+    var product_id = $(this).data("product-id");
 
     $.ajax({
         url: "/get-product-price",
@@ -29,25 +30,39 @@ $(document).ready(function(){
             product_id: product_id,
             _token: $('meta[name="csrf-token"]').attr("content")
         },
-                success: function (resp) {
+        success: function (resp) {
             if (!resp || resp.status === false) return;
 
-            // ✅ Always update SKU (no matter discount or not)
-            $(".skuText").text(resp.sku ?? "N/A");
+            var finalFormatted = resp.final_price_formatted || resp.final_price_display || '';
+            var baseFormatted = resp.product_price_formatted || resp.product_price_display || '';
 
-            if (resp.discount > 0) {
-                $(".getAttributePrice").html(
-                    "<span class='old-price'>$" + resp.product_price + "</span> " +
-                    "<span class='new-price'>$" + resp.final_price + "</span>"
+            // Fallback to numeric formatting if formatted versions not available
+            if (!finalFormatted && typeof resp.final_price !== 'undefined') {
+                finalFormatted = Number(resp.final_price).toFixed(2);
+            }
+            if (!baseFormatted && typeof resp.product_price !== 'undefined') {
+                baseFormatted = Number(resp.product_price).toFixed(2);
+            }
+
+            // Display price with or without discount
+            if (resp.discount > 0 || (resp.percent && Number(resp.percent) > 0)) {
+                $('.getAttributePrice').html(
+                    "<span class='new-price'>" + finalFormatted + "</span>" +
+                    "<span class='old-price'>" + baseFormatted + "</span>"
                 );
             } else {
-                $(".getAttributePrice").html(
-                    "<span class='new-price'>$" + resp.final_price + "</span>"
+                $('.getAttributePrice').html(
+                    "<span class='new-price'>" + finalFormatted + "</span>" // Fixed: removed hardcoded $
                 );
             }
+
+            // Update mini price if exists
+            if (resp.final_price_formatted) {
+                $('#mini-price').text(resp.final_price_formatted);
+            }
         },
-        error: function (xhr) {
-            console.log("Error:", xhr.responseText);
+        error: function (xhr, status, err) {
+            console.log("Error Fetching Price:", err || status);
         }
     });
 });
@@ -232,5 +247,175 @@ $(document).on('click','#removeCouponBtn', function(e){
 
 })(jQuery);
 
+// Login Form Ajax Handler
+$(document).on('submit', '#loginForm', function(e) {
+    e.preventDefault();
+
+    // Clear previous errors
+    $('.help-block.text-danger').text('');
+
+    var $btn = $('#loginButton');
+    $btn.prop('disabled', true).text('Please Wait...');
+
+    var payload = {
+        email: $('#loginEmail').val(),
+        password: $('#loginPassword').val(),
+        user_type: $('input[name="user_type"]:checked').val()
+    };
+
+    $.ajax({
+        url: window.routes && window.routes.userLoginPost ? window.routes.userLoginPost : '/user/login',
+        type: 'POST',
+        headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+        contentType: 'application/json',
+        data: JSON.stringify(payload),
+        success: function(resp) {
+            if(resp.success) {
+                $('#loginSuccess').html('<div class="alert alert-success">' + resp.message + '</div>');
+                // Keep button disabled during redirect
+                window.location.href = resp.redirect || '/';
+            } else {
+                $('#loginSuccess').html('<div class="alert alert-danger">Login Failed</div>');
+                $btn.prop('disabled', false).text('LOGIN');
+            }
+        },
+        error: function(xhr) {
+            $btn.prop('disabled', false).text('LOGIN');
+
+            if(xhr.responseJSON && xhr.responseJSON.errors) {
+                $.each(xhr.responseJSON.errors, function(key, val) {
+                    $('[data-error="' + key + '"]').text(val[0]);
+                });
+            } else {
+                $('#loginSuccess').html('<div class="alert alert-danger">An error occurred. Please try again.</div>');
+                console.error(xhr.responseText || xhr);
+            }
+        }
+    });
+});
+
+// Register Form Ajax Handler
+$(document).on('submit', '#registerForm', function(e) {
+    e.preventDefault();
+
+    // Clear previous errors
+    $('.help-block.text-danger').text('');
+
+    var $btn = $('#registerButton');
+    $btn.prop('disabled', true).text('Please Wait...');
+
+    var payload = {
+        name: $('#name').val(),
+        email: $('#email').val(),
+        password: $('#password').val(),
+        password_confirmation: $('#password_confirmation').val(),
+        user_type: $('input[name="user_type"]:checked').val()
+    };
+
+    $.ajax({
+        url: window.routes && window.routes.userRegisterPost ? window.routes.userRegisterPost : '/user/register',
+        type: 'POST',
+        headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
+        contentType: 'application/json',
+        data: JSON.stringify(payload),
+        success: function(resp) {
+            if(resp.success) {
+                $('#registerSuccess').html('<div class="alert alert-success">' + resp.message + '</div>');
+                $('#registerForm')[0].reset();
+
+                // Redirect after 1.5 seconds
+                setTimeout(function() {
+                    window.location.href = resp.redirect || '/';
+                }, 1500);
+            } else {
+                $('#registerSuccess').html('<div class="alert alert-danger">Registration Failed</div>');
+                $btn.prop('disabled', false).text('REGISTER');
+            }
+        },
+        error: function(xhr) {
+            $btn.prop('disabled', false).text('REGISTER');
+
+            if(xhr.responseJSON && xhr.responseJSON.errors) {
+                $.each(xhr.responseJSON.errors, function(key, val) {
+                    $('[data-error="' + key + '"]').text(val[0]);
+                });
+            } else {
+                $('#registerSuccess').html('<div class="alert alert-danger">An error occurred. Please try again.</div>');
+                console.error(xhr.responseText || xhr);
+            }
+        }
+    });
+});
+
+// Currency Switcher
+(function () {
+    function getCsrfToken() {
+        var meta = document.querySelector('meta[name="csrf-token"]');
+        return meta ? meta.getAttribute('content') : '';
+    }
+
+    var btn = document.getElementById('current-currency-btn');
+    var list = document.getElementById('currency-list');
+
+    if (!btn || !list) return;
+
+    // Toggle currency dropdown
+    btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        list.classList.toggle('show');
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function () {
+        list.classList.remove('show');
+    });
+
+    // Prevent closing when clicking inside list
+    list.addEventListener('click', function (e) {
+        e.stopPropagation();
+    });
+
+    // Currency switch URL
+    var switchUrl = (window.appConfig && window.appConfig.currencySwitchUrl)
+        ? window.appConfig.currencySwitchUrl
+        : '/currency/switch';
+
+    var csrfToken = getCsrfToken();
+
+    // Handle currency item clicks
+    document.querySelectorAll('.currency-item').forEach(function (el) {
+        el.addEventListener('click', function () {
+            var code = this.getAttribute('data-code');
+            if (!code) return;
+
+            fetch(switchUrl, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ code: code })
+            })
+            .then(function (res) {
+                return res.json().catch(function () {
+                    return {};
+                });
+            })
+            .then(function (resp) {
+                if (resp && resp.status === 'success') {
+                    location.reload();
+                } else {
+                    alert(resp.message || 'Could not switch currency');
+                }
+            })
+            .catch(function (err) {
+                console.error(err);
+                alert('Network error switching currency');
+            });
+        });
+    });
+})();
 
 
