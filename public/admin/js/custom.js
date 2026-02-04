@@ -368,6 +368,39 @@ $(document).on("click", ".updateCurrencyStatus", function () {
     });
 });
 
+// Update Review Status
+$(document).on("click", ".updateReviewStatus", function () {
+
+    var icon = $(this).find("i");
+    var status = icon.attr("data-status"); // FIXED
+    var review_id = $(this).data("review_id");
+
+    $.ajax({
+        type: "POST",
+        url: "/admin/update-review-status",
+        data: {
+            status: status,
+            review_id: review_id,
+            _token: $('meta[name="csrf-token"]').attr("content")
+        },
+        success: function (resp) {
+
+            if (resp.status == 0) {
+                $("a[data-review_id='" + review_id + "']").html(
+                    "<i class='fas fa-toggle-off' style='color:grey' data-status='Inactive'></i>"
+                );
+            } else if (resp.status == 1) {
+                $("a[data-review_id='" + review_id + "']").html(
+                    "<i class='fas fa-toggle-on' style='color:#3f6ed3' data-status='Active'></i>"
+                );
+            }
+        },
+        error: function (xhr) {
+            alert("Error: " + xhr.status);
+        }
+    });
+});
+
 // Update Filter Status
 $(document).on("click", ".updateFilterStatus", function () {
 

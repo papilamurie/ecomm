@@ -77,6 +77,12 @@ $(document).ready(function () {
             hiddenCols: {!! json_encode($currenciesHiddenCols ?? []) !!}.map(x => parseInt(x)),
             tableKey: "currencies"
         },
+        {
+            id: "reviews",
+            savedOrder: {!! json_encode($reviewsSaveOrder ?? []) !!}.map(x => parseInt(x)),
+            hiddenCols: {!! json_encode($reviewsHiddenCols ?? []) !!}.map(x => parseInt(x)),
+            tableKey: "reviews"
+        },
 
     ];
 

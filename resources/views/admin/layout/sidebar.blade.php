@@ -169,7 +169,7 @@
                 </ul>
               </li>
 
-              <li class="nav-item {{ in_array(Session::get('page'), ['currencies']) ? 'menu-open' : '' }}">
+               <li class="nav-item {{ in_array(Session::get('page'), ['currencies']) ? 'menu-open' : '' }}">
                 <a href="#" class="nav-link {{ in_array(Session::get('page'), ['currencies']) ? 'active' : '' }}">
                   <i class="nav-icon bi bi-box-seam-fill"></i>
                   <p>
@@ -183,6 +183,29 @@
                     <a href="{{ url('admin/currencies') }}" class="nav-link {{ (Session::get('page')=='currencies')? 'active':'' }}">
                  <i class="nav-icon bi bi-circle"></i>
                   <p>Currencies</p>
+                </a>
+                  </li>
+
+
+
+
+                </ul>
+              </li>
+
+               <li class="nav-item {{ in_array(Session::get('page'), ['reviews']) ? 'menu-open' : '' }}">
+                <a href="#" class="nav-link {{ in_array(Session::get('page'), ['reviews']) ? 'active' : '' }}">
+                  <i class="nav-icon bi bi-box-seam-fill"></i>
+                  <p>
+                    Review Management
+
+                    <i class="nav-arrow bi bi-chevron-right"></i>
+                  </p>
+                </a>
+                <ul class="nav nav-treeview">
+                <li class="nav-item">
+                    <a href="{{ url('admin/reviews') }}" class="nav-link {{ (Session::get('page')=='reviews')? 'active':'' }}">
+                 <i class="nav-icon bi bi-circle"></i>
+                  <p>Reviews</p>
                 </a>
                   </li>
 

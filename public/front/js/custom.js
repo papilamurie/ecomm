@@ -418,4 +418,119 @@ $(document).on('submit', '#registerForm', function(e) {
     });
 })();
 
+(function(){
+    //Delay init until DOM ready
+    document.addEventListener('DOMContentLoaded', function(){
+        const starContainer = document.getElementById('star-rating');
+        const ratingInput = document.getElementById('ratingInput');
+        const reviewForm = document.getElementById('reviewForm');
+
+        console.log('[review debug] init', { starContainer: !!starContainer, ratingInput: !!ratingInput, reviewForm: !!reviewForm });
+        if(!starContainer || !ratingInput){
+            console.warn('[review debug] starContainer or ratingInput missing. Abort star init.');
+            return;
+        }
+
+        //Ensure there is exactly one form/input/container
+        try{
+            if(document.querySelectorAll('#star-rating').length !== 1) console.warn('[review debug] #star-rating count:',
+                document.querySelectorAll('#star-rating').length);
+            if(document.querySelectorAll('#ratingInput').length !== 1) console.warn('[review debug] #ratingInput count:',
+                document.querySelectorAll('#ratingInput').length);
+        } catch(e){ console.error(e);}
+
+        // Event delegation: handle click/hover on the container
+        function setVisual(value){
+            const stars = starContainer.querySelectorAll('i[data-value]');
+            stars.forEach(s=>{
+                const v = parseInt(s.getAttribute('data-value') || 0, 10);
+                if(v<=value){ s.classList.remove('far'); s.classList.add('fas');}
+                else{ s.classList.remove('fas'); s.classList.add('far');}
+            });
+        }
+
+        //initialize from existing value
+        const initial = parseInt(ratingInput.value || '0', 10) || 0;
+        if(initial) setVisual(initial);
+
+        //single handler for clicks
+        starContainer.addEventListener('click', function(evt){
+            const el = evt.target.closest('i[data-value]');
+            if(!el) return;
+            const val = parseInt(el.getAttribute('data-value') || 0, 10) || 0;
+            ratingInput.value = val;
+            setVisual(val);
+            console.log('[review debug] star clicked', val);
+        });
+
+        //mouseover/out handlers
+        starContainer.addEventListener('mouseover', function(evt){
+            const el = evt.target.closest('i[data-value]');
+            if(!el) return;
+            const val = parseInt(el.getAttribute('data-value')||0, 10) || 0;
+            setVisual(val);
+        }, true);
+
+        starContainer.addEventListener('mouseout', function(evt){
+            //restore to selected rating
+            const current = parseInt(ratingInput.value || 0, 10) || 0;
+            setVisual(current);
+        }, true);
+
+        //ajax submit
+        if(reviewForm){
+            reviewForm.addEventListener('submit', function(e){
+                //if you prefer non-ajax remove this block and server will redirect with flash(option A)
+                e.preventDefault();
+                if(!ratingInput.value || ratingInput.value == 0){
+                    alert('Please Select a Rating (1-5).');
+                    return;
+                }
+
+                const tokenEl = reviewForm.querySelector('input[name="_token"]');
+                const token = tokenEl ? tokenEl.value :
+                (document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')||"");
+
+                const fd = new FormData(reviewForm);
+                fetch(reviewForm.action, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': token, 'Accept': 'application/json' },
+                    body: fd,
+                    credentials: 'same-origin'
+                }).then(async res=>{
+                    const json = await res.json().catch(()=>null);
+                    if (res.ok) {
+                        // show inline message (simple)
+                        const parent = reviewForm.parentElement;
+                        const old = parent.querySelector('.ajax-review-alert');
+                        if (old) old.remove();
+                        const div = document.createElement('div');
+                        div.className = 'ajax-review-alert alert alert-success mt-3';
+                        div.innerHTML = (json && json.message) ? json.message : 'Thank you — review submitted.';
+                        parent.insertBefore(div, parent.firstChild);
+                        // reset
+                        reviewForm.reset();
+                        ratingInput.value = 0;
+                        setVisual(0);
+                    } else {
+                        const parent = reviewForm.parentElement;
+                        const old = parent.querySelector('.ajax-review-alert');
+                        if (old) old.remove();
+                        const div = document.createElement('div');
+                        div.className = 'ajax-review-alert alert alert-danger mt-3';
+                        let msg = 'Unable to submit review.';
+                        if (json && json.message) msg = json.message;
+                        else if (json && json.errors) msg = Object.values(json.errors).flat().join('<br>');
+                        div.innerHTML = msg;
+                        parent.insertBefore(div, parent.firstChild);
+                    }
+                }).catch(err=>{
+                    console.error('[review debug] submit error', err);
+                    alert('Server error — try again later.');
+                });
+            });
+        }
+    });
+})();
+
 

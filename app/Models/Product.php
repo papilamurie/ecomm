@@ -54,6 +54,14 @@ class Product extends Model
         return $this->hasMany(ProductsAttribute::class);
     }
 
+    public function reviews(){
+        return $this->hasMany(\App\Models\Review::class,'product_id');
+    }
+
+    public function averageRating(){
+        return (float) $this->reviews()->where('status',1)->avg('rating') ?? 0;
+    }
+
     public function filterValues()
     {
         return $this->belongsToMany(

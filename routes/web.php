@@ -16,6 +16,7 @@ use App\Http\Controllers\admin\CouponController;
 use App\Http\Controllers\admin\CurrencyController;
 use App\Http\Controllers\admin\FilterController;
 use App\Http\Controllers\admin\FilterValueController;
+use App\Http\Controllers\admin\ReviewController;
 use App\Http\Controllers\admin\UserController;
 use App\Http\Controllers\front\CartController;
 
@@ -24,6 +25,7 @@ use App\Http\Controllers\front\CartController;
 use App\Http\Controllers\front\IndexController;
 use App\Http\Controllers\front\ProductController as ProductFrontController;
 use App\Http\Controllers\front\CouponController  as CouponFrontController;
+use App\Http\Controllers\front\ReviewController as ReviewFrontController;
 use App\Http\Controllers\front\AuthController;
 use App\Http\Controllers\front\CurrencySwitchController;
 use App\Models\Product;
@@ -182,6 +184,10 @@ Route::get('delete-product-video/{id}', [ProductController::class, 'deleteProduc
      Route::resource('currencies', CurrencyController::class);
      Route::post('update-currency-status', [CurrencyController::class, 'updateCurrencyStatus']);
 
+     //Reviews Routes(Admin Dashboard)
+     Route::resource('reviews', ReviewController::class);
+     Route::post('update-review-status', [ReviewController::class, 'updateReviewStatus']);
+
 });
 
 
@@ -192,20 +198,20 @@ Route::get('delete-product-video/{id}', [ProductController::class, 'deleteProduc
 Route::middleware('web')->namespace('App\Http\Controllers\front')->group(function (){
     Route::get('/', [IndexController::class, 'index']);
 
-    //Category view route for products
+   //Category view route for products
     $catUrls = Category::where('status', 1)->pluck('url')->toArray();
-    foreach($catUrls as $url){
+    foreach ($catUrls as $url) {
         Route::get("/$url", [ProductFrontController::class, 'index']);
     }
 
     // product detail route
-    if(Schema::hasTable('products')){
-        try{
+    if (Schema::hasTable('products')) {
+        try {
             $productUrls = Product::where('status', 1)->pluck('product_url')->toArray();
-            foreach($productUrls as $url){
+            foreach ($productUrls as $url) {
                 Route::get("/$url", [ProductFrontController::class, 'detail']);
             }
-        }catch(\Throwable $e){
+        } catch (\Throwable $e) {
             // ignore errors during migration
         }
     }
@@ -216,12 +222,11 @@ Route::middleware('web')->namespace('App\Http\Controllers\front')->group(functio
     Route::get('/search-products', [ProductFrontController::class, 'ajaxSearch'])->name('search.products');
 
     // Cart routes - SPECIFIC routes MUST come BEFORE general routes
-    Route::get('/cart/refresh', [CartController::class, 'refresh'])->name('cart.refresh');  // ✅ Moved before /cart
+    Route::get('/cart/refresh', [CartController::class, 'refresh'])->name('cart.refresh');
     Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
-    Route::post('/cart', [CartController::class, 'store'])->name('cart.store');  // ✅ Changed from /add-to-cart
+    Route::post('/cart', [CartController::class, 'store'])->name('cart.store');
     Route::patch('/cart/{cartId}', [CartController::class, 'update'])->name('cart.update');
     Route::delete('/cart/{cartId}', [CartController::class, 'destroy'])->name('cart.destroy');
-
 
     // Apply Coupon
     Route::post('/cart/apply-coupon', [CouponFrontController::class, 'apply'])->name('cart.apply.coupon');
@@ -233,14 +238,26 @@ Route::middleware('web')->namespace('App\Http\Controllers\front')->group(functio
     Route::post('/currency/switch', [CurrencySwitchController::class, 'switch'])->name('currency.switch');
 
     //User Routes
-    Route::prefix('user')->name('user.')->group(function(){
+    Route::prefix('user')->name('user.')->group(function () {
+
+        //routes only accessible when not logged in
+        Route::middleware('guest')->group(function(){
         Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
         Route::post('/login', [AuthController::class, 'handleLogin'])->name('login.post');
         Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
         Route::post('/register', [AuthController::class, 'register'])->name('register.post');
+        });
+
+        //routes only for authenticated users
+        Route::middleware('auth')->group(function (){
         Route::post('/logout', [AuthController::class, 'handleLogout'])->name('logout')->middleware('auth');
     });
+    });
 
+    //Reviews Route(Front)
+    Route::middleware('auth')->group(function () {
+        Route::post('/product-review', [ReviewFrontController::class, 'store'])->name('product.review.store');
+    });
 });
 
 
