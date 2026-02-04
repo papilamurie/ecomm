@@ -20,3 +20,13 @@ window.appConfig = window.appConfig || {};
 window.appConfig.currencySwitchUrl = "{{ route('currency.switch') }}";
  </script>
 
+ <script>
+window.App = {
+    csrfToken: "{{ csrf_token() }}",
+    routes: {
+        forgotPost: "{{ route('user.password.forgot.post') }}",
+        resetPost: "{{ route('user.password.reset.post') }}"
+    }
+};
+</script>
+

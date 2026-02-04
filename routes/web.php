@@ -246,6 +246,13 @@ Route::middleware('web')->namespace('App\Http\Controllers\front')->group(functio
         Route::post('/login', [AuthController::class, 'handleLogin'])->name('login.post');
         Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
         Route::post('/register', [AuthController::class, 'register'])->name('register.post');
+
+        //forgot password route
+        Route::get('password/forgot', [AuthController::class, 'showForgotForm'])->name('password.forgot');
+        Route::post('password/forgot', [AuthController::class, 'sendResetLink'])->name('password.forgot.post');
+        //Reset form(token) and post handler inside user group so JS using user.* name will work
+        Route::get('password/reset/{token}', [AuthController::class, 'showResetForm'])->name('password.reset');
+        Route::post('password/reset', [AuthController::class, 'resetPassword'])->name('password.reset.post');
         });
 
         //routes only for authenticated users
@@ -253,6 +260,9 @@ Route::middleware('web')->namespace('App\Http\Controllers\front')->group(functio
         Route::post('/logout', [AuthController::class, 'handleLogout'])->name('logout')->middleware('auth');
     });
     });
+
+    // ✅ This alias is REQUIRED for Laravel's ResetPassword notification
+        Route::get('password/reset/{token}', [AuthController::class, 'showResetForm'])->name('password.reset');
 
     //Reviews Route(Front)
     Route::middleware('auth')->group(function () {

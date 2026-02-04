@@ -56,6 +56,11 @@ $(document).on("change", ".getPrice", function () {
                 );
             }
 
+             // Update SKU
+                if (resp.sku) {
+                    $(".skuText").text(resp.sku);
+                }
+
             // Update mini price if exists
             if (resp.final_price_formatted) {
                 $('#mini-price').text(resp.final_price_formatted);
@@ -527,6 +532,130 @@ $(document).on('submit', '#registerForm', function(e) {
                 }).catch(err=>{
                     console.error('[review debug] submit error', err);
                     alert('Server error — try again later.');
+                });
+            });
+        }
+    });
+})();
+
+(function () {
+    'use strict';
+
+    function getCsrfToken() {
+        if (window.App && window.App.csrfToken) return window.App.csrfToken;
+        const meta = document.querySelector('meta[name="csrf-token"]');
+        return meta ? meta.getAttribute('content') : '';
+    }
+
+    function showAlert(containerId, html) {
+        const el = document.getElementById(containerId);
+        if (el) el.innerHTML = html;
+    }
+
+    function clearFieldErrors() {
+        document.querySelectorAll('[data-error-for]').forEach(el => el.innerText = "");
+    }
+
+    function displayFieldErrors(errors) {
+        for (const key in errors) {
+            const el = document.querySelector('[data-error-for="' + key + '"]');
+            if (el) el.innerText = errors[key][0];
+        }
+    }
+
+    async function handleFetch(fetchPromise, btn, originalText, successCallback) {
+        try {
+            const res = await fetchPromise;
+            btn.disabled = false;
+            btn.innerText = originalText;
+            if (res.ok) {
+                const json = await res.json().catch(() => ({}));
+                if (successCallback) successCallback(json);
+                return;
+            }
+            if (res.status === 422) {
+                const json = await res.json().catch(() => ({}));
+                displayFieldErrors(json.errors || {});
+                return;
+            }
+            const text = await res.text().catch(() => "");
+            console.error('Unexpected response:', res.status, text);
+        } catch (err) {
+            btn.disabled = false;
+            btn.innerText = originalText;
+            console.error(err);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const csrfToken = getCsrfToken();
+
+        // Forgot form
+        const forgotForm = document.getElementById('forgotForm');
+        if (forgotForm) {
+            const forgotBtn = document.getElementById('forgotButton');
+            forgotForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                clearFieldErrors();
+                showAlert('forgotSuccess', "");
+                if (!forgotBtn) return;
+                const originalText = forgotBtn.innerText;
+                forgotBtn.disabled = true;
+                forgotBtn.innerText = 'Please wait...';
+                const email = forgotForm.email ? forgotForm.email.value : "";
+                const url = window.App && window.App.routes && window.App.routes.forgotPost
+                    ? window.App.routes.forgotPost
+                    : '/user/password/forgot';
+                const fetchPromise = fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ email })
+                });
+                handleFetch(fetchPromise, forgotBtn, originalText, function (json) {
+                    showAlert('forgotSuccess', '<div class="alert alert-success">' + (json.message || 'Reset link sent.') + '</div>');
+                });
+            });
+        }
+
+        // Reset form
+        const resetForm = document.getElementById('resetForm');
+        if (resetForm) {
+            const resetBtn = document.getElementById('resetButton');
+            resetForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                clearFieldErrors();
+                showAlert('resetSuccess', "");
+                if (!resetBtn) return;
+                const originalText = resetBtn.innerText;
+                resetBtn.disabled = true;
+                resetBtn.innerText = 'Please wait...';
+                const payload = {
+                    token: resetForm.token ? resetForm.token.value : "",
+                    email: resetForm.email ? resetForm.email.value : "",
+                    password: resetForm.password ? resetForm.password.value : "",
+                    password_confirmation: resetForm.password_confirmation ? resetForm.password_confirmation.value : ""
+                };
+                const url = window.App && window.App.routes && window.App.routes.resetPost
+                    ? window.App.routes.resetPost
+                    : '/user/password/reset';
+                const fetchPromise = fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify(payload)
+                });
+                handleFetch(fetchPromise, resetBtn, originalText, function (json) {
+                    showAlert('resetSuccess', '<div class="alert alert-success">' + (json.message || 'Password reset successful.') + '</div>');
+                    if (json.redirect) setTimeout(() => window.location.href = json.redirect, 1200);
                 });
             });
         }

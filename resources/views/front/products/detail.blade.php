@@ -656,12 +656,12 @@
                             <!-- End .product-container -->
                             @if($similar['product_discount']>0)
                                 <div class="price-box">
-                                    <del class="old-price">${{ $similar['product_price'] }}</del>
-                                    <span class="product-price">${{ $similar['final_price'] }}</span>
+                                    <del class="old-price">{{ formatCurrency($similar['product_price']) }}</del>
+                                    <span class="product-price">{{ formatCurrency($similar['final_price']) }}</span>
                                 </div>
                             @else
                                 <div class="price-box">
-                                    <span class="product-price">${{ $similar['final_price'] }}</span>
+                                    <span class="product-price">{{ formatCurrency($similar['final_price']) }}</span>
                                 </div>
                             @endif
                             <!-- End .price-box -->

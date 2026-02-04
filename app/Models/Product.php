@@ -135,6 +135,8 @@ class Product extends Model
                 'final_price_formatted' => formatCurrency($final),
                 'product_price_display' => formatCurrency($basePrice),
                 'final_price_display' => formatCurrency($final),
+                'sku' => $attribute->sku, // ✅ Added this line
+                'stock' => $attribute->stock ?? 0 // ✅ Bonus: stock quantity
             ];
 
     }

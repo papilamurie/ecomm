@@ -58,7 +58,7 @@
                                     <p class="help-block text-danger" data-error="user_type"></p>
                                 </div>
 
-                                <a href="#" class="forget-password text-dark form-footer-right">
+                                <a href="{{ route('user.password.forgot') }}" class="forget-password text-dark form-footer-right">
                                     Forgot Password?
                                 </a>
                             </div>

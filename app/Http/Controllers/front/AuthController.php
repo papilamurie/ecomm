@@ -4,12 +4,18 @@ namespace App\Http\Controllers\front;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\admin\LoginRequest;
+use App\Http\Requests\front\ForgotPasswordRequest;
 use App\Http\Requests\front\RegisterRequest;
+use App\Http\Requests\front\ResetPasswordRequest;
 use App\Mail\UserRegistered;
 use App\Models\User;
 use App\Services\front\AuthService;
+use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -80,6 +86,72 @@ public function register(RegisterRequest $request)
         'message' => 'Registration successful.',
         'redirect' => url('/')
     ]);
+}
+
+public function showForgotForm()
+{
+    return view('front.auth.forgot_password');
+}
+
+public function sendResetLink(ForgotPasswordRequest $request){
+    $validated = $request->validated();
+    $status = Password::sendResetLink(
+        ['email'=>$validated['email']]
+    );
+
+    if($status === Password::RESET_LINK_SENT){
+        return response()->json([
+            'status' => 'success', // ✅ Changed from 'success'
+            'message' => __($status)
+        ]);
+    }
+
+    return response()->json([
+        'status' => 'error', // ✅ Added
+        'errors' =>['email' => [__($status)]]
+    ], 422);
+}
+
+public function showResetForm($token)
+{
+    return view('front.auth.reset_password',['token'=>$token]);
+}
+
+
+public function resetPassword(ResetPasswordRequest $request)
+{
+    $validated = $request->validated();
+
+    $status = Password::reset(
+        [
+            'email'=>$validated['email'],
+            'password' =>$validated['password'],
+            'password_confirmation' => $validated['password_confirmation'],
+            'token' => $validated['token'],
+        ],
+        function($user,$password){
+            $user->password = Hash::make($password);
+            $user->setRememberToken(Str::random(60));
+            $user->save();
+
+            event(new PasswordReset($user));
+            //auto login after reset (optional)
+            auth()->login($user);
+        }
+    );
+
+    if($status === Password::PASSWORD_RESET){
+        return response()->json([
+            'status' => 'success', // ✅ Changed from 'success'
+            'message' => __($status),
+            'redirect' => url('/')
+        ]);
+    }
+
+    return response()->json([
+        'status' => 'error', // ✅ Added
+        'errors' => ['email' => [__($status)]]
+    ], 422);
 }
     public function handleLogout(Request $request)
     {
