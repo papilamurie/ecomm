@@ -289,5 +289,37 @@ protected function currentCartQuery()
      return $q;
 }
 
+public function migrateGuestCartToUser(?string $guestSessionId, ?int $userId): void
+{
+    if(empty($guestSessionId) || empty($userId)) return;
+
+    //fetch guest rows once
+    $guestRows = \App\Models\Cart::where('session_id', $guestSessionId)->get();
+    if($guestRows->isEmpty()) return;
+
+    \DB::transaction(function () use ($guestRows, $userId){
+        foreach($guestRows as $row)
+            {
+                //look for am existing row with the same product & size
+                $exisiting = \App\Models\Cart::where('user_id', $userId)
+                                                ->whereNull('session_id')
+                                                ->where('product_id',$row->product_id)
+                                                ->where('product_size',$row->product_size)
+                                                ->first();
+                if($exisiting){
+                    //merge qty,delete guest row
+                    $exisiting->increment('product_qty',(int)$row->product_qty);
+                    $row->delete();
+                }else{
+                    //Reassign guest row to this user
+                    $row->update([
+                        'user_id'=>$userId,
+                        'session_id'=> null,
+                    ]);
+                }
+            }
+    });
+}
+
 
 }

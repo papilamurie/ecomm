@@ -662,4 +662,389 @@ $(document).on('submit', '#registerForm', function(e) {
     });
 })();
 
+document.addEventListener('DOMContentLoaded', function() {
+    const countryEl = document.getElementById('country');
+    const countySelectWrapper = document.getElementById('county_select_wrapper');
+    const countyTextWrapper = document.getElementById('county_text_wrapper');
+    const countySelect = document.getElementById('county_select');
+    const countyText = document.getElementById('county_text');
+    const postcodeInput = document.getElementById('postcode');
+    const cityInput = document.getElementById('city');
+    const postcodeLoader = document.getElementById('postcodeLoader');
+
+    function safeHide(el) { if (el) el.style.display = 'none'; }
+    function safeShow(el) { if (el) el.style.display = ''; }
+
+    // Normalizer: strip common noise and punctuation
+    function normalizeForMatch(s) {
+        if (!s) return '';
+        let str = s.toString().toLowerCase().trim();
+        str = str.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, '');
+        str = str.replace(/\b(county|county of|city of|city|borough of|borough|unitary|unitary authority|council area|metropolitan borough of|metropolitan borough|district|district of)\b/g, '');
+        return str.replace(/\s+/g, ' ').trim();
+    }
+
+    // Extended alias map - map returned city/borough -> seeded county normalized value
+    const countyAliasMap = {
+        // York
+        'york': 'north yorkshire',
+        'city of york': 'north yorkshire',
+
+        // London boroughs -> Greater London
+        'westminster': 'greater london',
+        'city of westminster': 'greater london',
+        'camden': 'greater london',
+        'lambeth': 'greater london',
+        'southwark': 'greater london',
+        'islington': 'greater london',
+        'greenwich': 'greater london',
+        'hackney': 'greater london',
+        'kensington and chelsea': 'greater london',
+        'hammersmith and fulham': 'greater london',
+        'kingston upon thames': 'greater london',
+        'richmond upon thames': 'greater london',
+        'haringey': 'greater london',
+        'brent': 'greater london',
+        'bromley': 'greater london',
+        'croydon': 'greater london',
+        'ealing': 'greater london',
+        'enfield': 'greater london',
+        'harrow': 'greater london',
+        'havering': 'greater london',
+        'hillingdon': 'greater london',
+        'hounslow': 'greater london',
+        'merton': 'greater london',
+        'newham': 'greater london',
+        'redbridge': 'greater london',
+        'sutton': 'greater london',
+        'wandsworth': 'greater london',
+        'barking and dagenham': 'greater london',
+        'barnet': 'greater london',
+        'bexley': 'greater london',
+        'london': 'greater london',
+        'city of london': 'greater london',
+
+        // Sheffield / South Yorkshire
+        'sheffield': 'south yorkshire',
+        'city of sheffield': 'south yorkshire',
+
+        // Liverpool / Merseyside
+        'liverpool': 'merseyside',
+
+        // Belfast / Antrim
+        'belfast': 'antrim',
+        'belfast city': 'antrim',
+        'county antrim': 'antrim',
+
+        // Hull -> East Riding (adjust if your seed uses different text)
+        'hull': 'east riding of yorkshire',
+        'kingston upon hull': 'east riding of yorkshire',
+
+        // other mappings
+        'manchester': 'greater manchester',
+        'newcastle upon tyne': 'tyne and wear',
+        'glasgow': 'glasgow city',
+        'edinburgh': 'city of edinburgh',
+        'cardiff': 'cardiff',
+        'swansea': 'swansea'
+    };
+
+    // Try to find a matching option element for a returned county value
+    function matchCountyOption(countyVal) {
+        if (!countySelect || !countyVal) return null;
+        const raw = countyVal.toString();
+        const target = normalizeForMatch(raw);
+
+        // 0) Alias lookup first (maps city -> county)
+        if (countyAliasMap[target]) {
+            const aliasNorm = countyAliasMap[target]; // already normalized mapping
+            const aliasOpt = Array.from(countySelect.options).find(o =>
+                normalizeForMatch(o.value) === aliasNorm || normalizeForMatch(o.text) === aliasNorm
+            );
+            if (aliasOpt) return aliasOpt;
+        }
+
+        // 1) exact normalized match against option value
+        let opt = Array.from(countySelect.options).find(o => normalizeForMatch(o.value) === target && normalizeForMatch(o.value) !== '');
+        if (opt) return opt;
+
+        // 2) exact normalized match against option text
+        opt = Array.from(countySelect.options).find(o => normalizeForMatch(o.text) === target && normalizeForMatch(o.text) !== '');
+        if (opt) return opt;
+
+        // 3) partial match
+        opt = Array.from(countySelect.options).find(o => {
+            const t = normalizeForMatch(o.value || o.text);
+            return t && (t.includes(target) || target.includes(t));
+        });
+        if (opt) return opt;
+
+        return null;
+    }
+
+    // Toggle county inputs based on country
+    function toggleCountyInputs() {
+        if (!countryEl) return;
+        if (countryEl.value === 'United Kingdom') {
+            if (countySelectWrapper) safeShow(countySelectWrapper);
+            if (countyTextWrapper) safeHide(countyTextWrapper);
+            if (countyText) countyText.value = '';
+        } else {
+            if (countySelectWrapper) safeHide(countySelectWrapper);
+            if (countyTextWrapper) safeShow(countyTextWrapper);
+        }
+    }
+
+    toggleCountyInputs();
+    if (countryEl) countryEl.addEventListener('change', toggleCountyInputs);
+
+    // county select change handler
+    if (countySelect) {
+        countySelect.addEventListener('change', function() {
+            if (this.value === 'Other') {
+                if (countyTextWrapper) safeShow(countyTextWrapper);
+                if (countyText) countyText.focus();
+            } else if (countryEl && countryEl.value === 'United Kingdom') {
+                if (countyTextWrapper) safeHide(countyTextWrapper);
+                if (countyText) countyText.value = '';
+            }
+        });
+    }
+
+    // loader helpers
+    function showLoader() { if (postcodeLoader) postcodeLoader.style.display = 'inline-block'; }
+    function hideLoader() { if (postcodeLoader) postcodeLoader.style.display = 'none'; }
+
+    // debounced postcode lookup
+    let debounce;
+    if (postcodeInput) {
+        postcodeInput.addEventListener('input', function() {
+            clearTimeout(debounce);
+            debounce = setTimeout(() => {
+                const val = postcodeInput.value.trim();
+                if (!val) return;
+                if (!countryEl || countryEl.value !== 'United Kingdom') return;
+
+                const compact = val.replace(/\s+/g, '');
+                if (compact.length < 5) return;
+
+                showLoader();
+
+                fetch("/user/postcode-lookup/" + encodeURIComponent(val), {
+                    headers: {'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json'},
+                    credentials: 'same-origin'
+                })
+                .then(r => r.json())
+                .then(data => {
+                    hideLoader();
+                    if (data && data.success) {
+                        if (cityInput) cityInput.value = data.city || '';
+
+                        const countyVal = (data.county || '').trim();
+                        if (!countyVal) return;
+
+                        const matched = matchCountyOption(countyVal);
+
+                        if (matched) {
+                            try { countySelect.value = matched.value; }
+                            catch(e) { countySelect.selectedIndex = Array.from(countySelect.options).indexOf(matched); }
+
+                            if (countyTextWrapper) safeHide(countyTextWrapper);
+                            if (countyText) countyText.value = '';
+                        } else {
+                            if (countyTextWrapper) safeShow(countyTextWrapper);
+                            if (countyText) countyText.value = countyVal;
+                            if (countySelect) countySelect.value = '';
+                        }
+                    } else {
+                        console.log('Postcode lookup failed:', data && data.message);
+                    }
+                })
+                .catch(err => {
+                    hideLoader();
+                    console.error('Postcode lookup error', err);
+                });
+
+            }, 600);
+        });
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('accountForm');
+    if (!form) return;
+
+    const saveBtn = document.getElementById('accountSaveBtn');
+    const msgBox = document.getElementById('accountSuccess');
+
+    // Show per-field error
+    function showFieldErrors(errors) {
+        // clear previous
+        document.querySelectorAll('[data-error-for]').forEach(el => el.innerText = '');
+        for (const field in errors) {
+            const el = document.querySelector('[data-error-for="'+field+'"]');
+            if (el) el.innerText = errors[field][0];
+        }
+    }
+
+    // Clear top messages
+    function clearMessages() {
+        if (msgBox) msgBox.innerHTML = '';
+    }
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        clearMessages();
+        document.querySelectorAll('[data-error-for]').forEach(el => el.innerText = '');
+
+        if (saveBtn) {
+            saveBtn.disabled = true;
+            saveBtn.innerText = 'Please wait...';
+        }
+
+        // Collect form data (prefer select county, fallback to county_text)
+        const payload = {
+            name: (document.getElementById('name') || {}).value || '',
+            email: (document.getElementById('email') || {}).value || '',
+            company: (document.getElementById('company') || {}).value || '',
+            phone: (document.getElementById('phone') || {}).value || '',
+            address_line1: (document.getElementById('address_line1') || {}).value || '',
+            address_line2: (document.getElementById('address_line2') || {}).value || '',
+            city: (document.getElementById('city') || {}).value || '',
+            country: (document.getElementById('country') || {}).value || '',
+            postcode: (document.getElementById('postcode') || {}).value || '',
+            county: '',
+            county_text: ''
+        };
+
+        const countySelect = document.getElementById('county_select');
+        const countyText = document.getElementById('county_text');
+
+        if (countySelect && countySelect.value) {
+            payload.county = countySelect.value;
+        }
+        if (countyText && countyText.value) {
+            payload.county_text = countyText.value;
+        }
+
+        // send request
+        fetch('/user/account', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('input[name=_token]').value,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify(payload)
+        })
+        .then(async res => {
+            if (saveBtn) {
+                saveBtn.disabled = false;
+                saveBtn.innerText = 'Save changes';
+            }
+
+            if (res.ok) {
+                const json = await res.json();
+                if (msgBox) msgBox.innerHTML = '<div class="alert alert-success">'+ (json.message || 'Account updated') +'</div>';
+                // Optionally update displayed fields on success (e.g. name on page)
+                return;
+            }
+
+            if (res.status === 422) {
+                const json = await res.json();
+                showFieldErrors(json.errors || {});
+                // scroll to first error
+                const firstErr = document.querySelector('[data-error-for]:not(:empty)');
+                if (firstErr) firstErr.scrollIntoView({behavior:'smooth', block:'center'});
+                return;
+            }
+
+            // other errors: show generic message
+            const text = await res.text();
+            console.error('Unexpected response:', text);
+            if (msgBox) msgBox.innerHTML = '<div class="alert alert-danger">An unexpected error occurred. Please try again later.</div>';
+        })
+        .catch(err => {
+            if (saveBtn) {
+                saveBtn.disabled = false;
+                saveBtn.innerText = 'Save changes';
+            }
+            console.error('Submit error', err);
+            if (msgBox) msgBox.innerHTML = '<div class="alert alert-danger">Network error. Please try again.</div>';
+        });
+    });
+});
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('changePasswordForm');
+    const btn = document.getElementById('changePasswordBtn');
+    const box = document.getElementById('changePasswordSuccess');
+
+    function clearErrors() {
+        document.querySelectorAll('[data-error-for]').forEach(el => el.innerText = '');
+    }
+
+    function showErrors(errors) {
+        for (const k in errors) {
+            const el = document.querySelector('[data-error-for="'+k+'"]');
+            if (el) el.innerText = errors[k][0];
+        }
+    }
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        clearErrors();
+        if (box) box.innerHTML = '';
+
+        btn.disabled = true;
+        btn.innerText = 'Please wait...';
+
+        const payload = { // ✅ Fixed indentation
+            current_password: (document.getElementById('current_password') || {}).value || '',
+            password: (document.getElementById('new_password') || {}).value || '',
+            password_confirmation: (document.getElementById('password_confirmation') || {}).value || ''
+        };
+
+        fetch('/user/change-password', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('input[name=_token]').value,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            credentials: 'same-origin',
+            body: JSON.stringify(payload)
+        })
+        .then(async res => {
+            btn.disabled = false;
+            btn.innerText = 'Change Password';
+
+            if (res.ok) { // ✅ Fixed indentation
+                const json = await res.json();
+                box.innerHTML = '<div class="alert alert-success">'+ (json.message || 'Password changed successfully.') +'</div>';
+                form.reset();
+                return;
+            }
+
+            if (res.status === 422) {
+                const json = await res.json();
+                showErrors(json.errors || {});
+                return;
+            }
+
+            const text = await res.text();
+            console.error(text);
+            box.innerHTML = '<div class="alert alert-danger">An unexpected error occurred. Please try again.</div>';
+        })
+        .catch(err => {
+            btn.disabled = false;
+            btn.innerText = 'Change Password';
+            console.error(err);
+            box.innerHTML = '<div class="alert alert-danger">Network error. Please try again.</div>';
+        });
+    });
+});
 

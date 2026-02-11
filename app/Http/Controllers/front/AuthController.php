@@ -10,11 +10,13 @@ use App\Http\Requests\front\ResetPasswordRequest;
 use App\Mail\UserRegistered;
 use App\Models\User;
 use App\Services\front\AuthService;
+use App\Services\front\CartService;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 
 class AuthController extends Controller
@@ -39,6 +41,9 @@ class AuthController extends Controller
     public function handleLogin(LoginRequest $request)
 {
     $data = $request->validated();
+    //Capture guest session id before auth::attempt regenerates the session id
+    $guestSessionId = Session::get('session_id') ?: $request->session()->getId();
+
     $credentials = ['email' => $data['email'], 'password' => $data['password']];
 
     // Pre-check if inactive return friendly error
@@ -51,6 +56,9 @@ class AuthController extends Controller
     }
 
     if ($this->authService->attemptLogin($credentials, $request->boolean('remember'))) {
+        //merge guest cart ->user cart
+        app(CartService::class)->migrateGuestCartToUser($guestSessionId, auth()->id());
+
         return response()->json([
             'success' => true,
             'message' => 'Login successful.',
@@ -67,6 +75,10 @@ class AuthController extends Controller
 public function register(RegisterRequest $request)
 {
     $data = $request->validated();
+
+    //Capture guest session id before auth::attempt regenerates the session id
+    $guestSessionId = Session::get('session_id') ?: $request->session()->getId();
+
     $user = $this->authService->registerUser($data);
 
     // Send email with logging
@@ -80,6 +92,9 @@ public function register(RegisterRequest $request)
 
     // Auto Login
     auth()->login($user);
+
+    //merge guest cart ->user cart
+        app(CartService::class)->migrateGuestCartToUser($guestSessionId, auth()->id());
 
     return response()->json([
         'success' => true,

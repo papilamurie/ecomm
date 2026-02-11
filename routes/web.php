@@ -18,6 +18,7 @@ use App\Http\Controllers\admin\FilterController;
 use App\Http\Controllers\admin\FilterValueController;
 use App\Http\Controllers\admin\ReviewController;
 use App\Http\Controllers\admin\UserController;
+use App\Http\Controllers\front\AccountController;
 use App\Http\Controllers\front\CartController;
 
 
@@ -28,6 +29,7 @@ use App\Http\Controllers\front\CouponController  as CouponFrontController;
 use App\Http\Controllers\front\ReviewController as ReviewFrontController;
 use App\Http\Controllers\front\AuthController;
 use App\Http\Controllers\front\CurrencySwitchController;
+use App\Http\Controllers\front\PostcodeLookupController;
 use App\Models\Product;
 use Illuminate\Support\Facades\Schema;
 
@@ -198,7 +200,7 @@ Route::get('delete-product-video/{id}', [ProductController::class, 'deleteProduc
 Route::middleware('web')->namespace('App\Http\Controllers\front')->group(function (){
     Route::get('/', [IndexController::class, 'index']);
 
-   //Category view route for products
+    //Category view route for products
     $catUrls = Category::where('status', 1)->pluck('url')->toArray();
     foreach ($catUrls as $url) {
         Route::get("/$url", [ProductFrontController::class, 'index']);
@@ -239,30 +241,25 @@ Route::middleware('web')->namespace('App\Http\Controllers\front')->group(functio
 
     //User Routes
     Route::prefix('user')->name('user.')->group(function () {
-
-        //routes only accessible when not logged in
-        Route::middleware('guest')->group(function(){
-        Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-        Route::post('/login', [AuthController::class, 'handleLogin'])->name('login.post');
-        Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-        Route::post('/register', [AuthController::class, 'register'])->name('register.post');
-
-        //forgot password route
-        Route::get('password/forgot', [AuthController::class, 'showForgotForm'])->name('password.forgot');
-        Route::post('password/forgot', [AuthController::class, 'sendResetLink'])->name('password.forgot.post');
-        //Reset form(token) and post handler inside user group so JS using user.* name will work
-        Route::get('password/reset/{token}', [AuthController::class, 'showResetForm'])->name('password.reset');
-        Route::post('password/reset', [AuthController::class, 'resetPassword'])->name('password.reset.post');
+        Route::middleware('guest')->group(function () {
+            Route::get('login', [AuthController::class, 'showLogin'])->name('login');
+            Route::post('login', [AuthController::class, 'handleLogin'])->name('login.post');
+            Route::get('register', [AuthController::class, 'showRegister'])->name('register');
+            Route::post('register', [AuthController::class, 'register'])->name('register.post');
+            Route::get('password/forgot', [AuthController::class, 'showForgotForm'])->name('password.forgot');
+            Route::post('password/forgot', [AuthController::class, 'sendResetLink'])->name('password.forgot.post');
+            Route::get('password/reset/{token}', [AuthController::class, 'showResetForm'])->name('password.reset');
+            Route::post('password/reset', [AuthController::class, 'resetPassword'])->name('password.reset.post');
         });
 
-        //routes only for authenticated users
-        Route::middleware('auth')->group(function (){
-        Route::post('/logout', [AuthController::class, 'handleLogout'])->name('logout')->middleware('auth');
+        Route::middleware('auth')->group(function () {
+            Route::get('account', [AccountController::class, 'showAccount'])->name('account');
+            Route::post('account', [AccountController::class, 'updateAccount'])->name('account.update');
+           Route::post('change-password', [AccountController::class, 'changePassword'])->name('change-password');
+            Route::get('postcode-lookup/{postcode}', [PostcodeLookupController::class, 'lookup'])->name('postcode.lookup');
+            Route::post('logout', [AuthController::class, 'handleLogout'])->name('logout');
+        });
     });
-    });
-
-    // ✅ This alias is REQUIRED for Laravel's ResetPassword notification
-        Route::get('password/reset/{token}', [AuthController::class, 'showResetForm'])->name('password.reset');
 
     //Reviews Route(Front)
     Route::middleware('auth')->group(function () {
